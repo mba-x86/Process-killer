@@ -67,6 +67,10 @@ def version_file(version):
     return path
 
 
+def find_gh():
+    return shutil.which("gh") or next((p for p in (r"C:\Program Files\GitHub CLI\gh.exe",) if os.path.exists(p)), None)
+
+
 def find_iscc():
     for p in (shutil.which("iscc"),
               os.path.expandvars(r"%LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe"),
@@ -123,9 +127,10 @@ def main():
 
     print(f"\nInstaller : {setup}  ({manifest['size'] / 1048576:.1f} MB)\nManifest  : {mpath}\nSHA-256   : {digest}")
     if a.publish:
-        if not shutil.which("gh") or not source.startswith("github:"):
+        gh = find_gh()
+        if not gh or not source.startswith("github:"):
             sys.exit("--publish needs the GitHub CLI (gh) and UPDATE_SOURCE = 'github:OWNER/REPO' in version.py")
-        sh(["gh", "release", "create", f"v{version}", setup, mpath, "--repo", source[7:],
+        sh([gh, "release", "create", f"v{version}", setup, mpath, "--repo", source[7:],
             "--title", f"Process Killer {version}", "--notes", notes or f"Version {version}"])
         print("Published. Users will see the update the next time they open the app.")
     else:
