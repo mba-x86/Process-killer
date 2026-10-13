@@ -1,2 +1,2 @@
-- Added system report: Secure Boot, UEFI/BIOS, TPM, virtualization and DirectX version
-- Built-in updater and installer
+- Added copyright and MIT license information
+- Cleaner About & updates page

@@ -5,7 +5,7 @@ import tkinter as tk
 from tkinter import ttk
 
 import updater
-from ui_kit import CARD, FG, FONT, LOG_DIR, MUTED, Page, logo_image, page_header
+from ui_kit import CARD, FG, FONT, MUTED, Page, logo_image, page_header
 from version import APP_NAME, COPYRIGHT, LICENSE_NAME, REPO_URL, __version__
 
 
@@ -43,16 +43,10 @@ class AboutPage(Page):
                              font=(FONT, 10), state="disabled", padx=0, pady=8)
         self.notes.pack(fill="both", expand=True)
 
-        src = updater.manifest_url()
-        ttk.Label(self, text=f"Update source: {src}" if src else
-                  "Update source: not configured (set UPDATE_SOURCE in version.py before building a release).",
-                  style="Muted.TLabel").pack(anchor="w", pady=(10, 0))
         link = ttk.Frame(self)
-        link.pack(anchor="w", pady=(6, 0))
+        link.pack(anchor="w", pady=(10, 0))
         ttk.Button(link, text="Project on GitHub", style="Ghost.TButton",
                    command=lambda: os.startfile(REPO_URL)).pack(side="left")
-        ttk.Button(link, text="Open data folder", style="Ghost.TButton",
-                   command=lambda: os.startfile(LOG_DIR) if os.path.isdir(LOG_DIR) else None).pack(side="left")
         self.set_info(None)
 
     def set_status(self, text, color=FG):
