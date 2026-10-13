@@ -1,3 +1,4 @@
+# Copyright (c) 2026 mba-x86. Released under the MIT License (see LICENSE).
 """Process Killer - About & updates page."""
 import os
 import tkinter as tk
@@ -5,7 +6,7 @@ from tkinter import ttk
 
 import updater
 from ui_kit import CARD, FG, FONT, LOG_DIR, MUTED, Page, logo_image, page_header
-from version import APP_NAME, __version__
+from version import APP_NAME, COPYRIGHT, LICENSE_NAME, REPO_URL, __version__
 
 
 class AboutPage(Page):
@@ -21,7 +22,8 @@ class AboutPage(Page):
         info = ttk.Frame(card, style="Card.TFrame")
         info.pack(side="left", fill="x", expand=True)
         ttk.Label(info, text=APP_NAME, style="CardH2.TLabel", font=(FONT, 16, "bold")).pack(anchor="w")
-        ttk.Label(info, text=f"Version {__version__}", style="CardMuted.TLabel").pack(anchor="w", pady=(2, 10))
+        ttk.Label(info, text=f"Version {__version__}  ·  {COPYRIGHT}  ·  {LICENSE_NAME}",
+                  style="CardMuted.TLabel").pack(anchor="w", pady=(2, 10))
         self.status = ttk.Label(info, text="", style="Card.TLabel", wraplength=640, justify="left")
         self.status.pack(anchor="w")
         row = ttk.Frame(info, style="Card.TFrame")
@@ -47,6 +49,8 @@ class AboutPage(Page):
                   style="Muted.TLabel").pack(anchor="w", pady=(10, 0))
         link = ttk.Frame(self)
         link.pack(anchor="w", pady=(6, 0))
+        ttk.Button(link, text="Project on GitHub", style="Ghost.TButton",
+                   command=lambda: os.startfile(REPO_URL)).pack(side="left")
         ttk.Button(link, text="Open data folder", style="Ghost.TButton",
                    command=lambda: os.startfile(LOG_DIR) if os.path.isdir(LOG_DIR) else None).pack(side="left")
         self.set_info(None)

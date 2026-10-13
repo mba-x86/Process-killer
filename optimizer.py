@@ -1,3 +1,4 @@
+# Copyright (c) 2026 mba-x86. Released under the MIT License (see LICENSE).
 """Process Killer - RAM boost, junk cleaning and disk analysis (no UI)."""
 import ctypes
 import glob

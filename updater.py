@@ -1,3 +1,4 @@
+# Copyright (c) 2026 mba-x86. Released under the MIT License (see LICENSE).
 """Process Killer - self-update: check a manifest, download the installer, verify it, run it.
 
 Manifest (latest.json) format:

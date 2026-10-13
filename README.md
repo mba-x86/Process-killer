@@ -19,5 +19,8 @@ py -m pip install -r requirements.txt
 py app.py
 ```
 
+## License
+MIT © 2026 mba-x86 - see [LICENSE](LICENSE).
+
 ## Build & release
 See [RELEASING.md](RELEASING.md).

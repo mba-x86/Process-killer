@@ -1,3 +1,4 @@
+# Copyright (c) 2026 mba-x86. Released under the MIT License (see LICENSE).
 """Process Killer - Optimizer (RAM + junk) and Storage analyzer pages."""
 import os
 import subprocess

@@ -1,3 +1,4 @@
+# Copyright (c) 2026 mba-x86. Released under the MIT License (see LICENSE).
 """Process Killer - core logic (no UI): discovery of apps and everything
 related to them, plus the actions that stop / remove those things."""
 import csv

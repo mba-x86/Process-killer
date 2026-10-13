@@ -1,3 +1,4 @@
+# Copyright (c) 2026 mba-x86. Released under the MIT License (see LICENSE).
 """Process Killer - desktop UI (Windows).  Run:  pyw app.py"""
 import ctypes
 import os
@@ -18,7 +19,7 @@ import updater
 from about import AboutPage
 from dashboard import DashboardPage
 from pages_extra import OptimizerPage, StoragePage
-from version import __version__
+from version import COPYRIGHT, __version__
 
 
 # ------------------------------------------------------------------ Applications page
@@ -816,7 +817,7 @@ class Main(tk.Tk):
             self.navs[key] = b
             self.pages[key] = cls(holder, self)
         adm = core.is_admin()
-        ttk.Label(side, text=f"Version {__version__}", style="SideMuted.TLabel",
+        ttk.Label(side, text=f"Version {__version__}\n{COPYRIGHT}", style="SideMuted.TLabel", justify="left",
                   padding=(22, 0)).pack(side="bottom", anchor="w", pady=(0, 18))
         ttk.Label(side, text=("● Administrator" if adm else "● Limited access"),
                   style="Side.TLabel", foreground=OK if adm else WARN,

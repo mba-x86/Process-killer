@@ -56,7 +56,7 @@ def version_file(version):
     text = f"""VSVersionInfo(
   ffi=FixedFileInfo(filevers={v}, prodvers={v}, mask=0x3f, flags=0x0, OS=0x40004, fileType=0x1, subtype=0x0, date=(0, 0)),
   kids=[StringFileInfo([StringTable('040904B0', [
-    StringStruct('CompanyName', 'Process Killer'), StringStruct('FileDescription', 'Process Killer'),
+    StringStruct('CompanyName', 'mba-x86'), StringStruct('LegalCopyright', 'Copyright (c) 2026 mba-x86. MIT License.'), StringStruct('FileDescription', 'Process Killer'),
     StringStruct('FileVersion', '{version}'), StringStruct('InternalName', 'ProcessKiller'),
     StringStruct('OriginalFilename', 'ProcessKiller.exe'), StringStruct('ProductName', 'Process Killer'),
     StringStruct('ProductVersion', '{version}')])]), VarFileInfo([VarStruct('Translation', [1033, 1200])])])

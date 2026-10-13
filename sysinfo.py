@@ -1,3 +1,4 @@
+# Copyright (c) 2026 mba-x86. Released under the MIT License (see LICENSE).
 """Process Killer - device / hardware information (no UI)."""
 import codecs
 import ctypes
