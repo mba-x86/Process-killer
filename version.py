@@ -1,6 +1,6 @@
 # Copyright (c) 2026 mba-x86. Released under the MIT License (see LICENSE).
 """Single source of truth for the app version and update location."""
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 APP_NAME = "Process Killer"
 AUTHOR = "mba-x86"
 COPYRIGHT = "© 2026 mba-x86"

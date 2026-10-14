@@ -1,2 +1,3 @@
-- Added copyright and MIT license information
-- Cleaner About & updates page
+- Much faster: app details load instantly, hardware report appears immediately (cached)
+- No more freezes from slow disks; live stats keep updating after minimize/restore
+- Activity page now logs slow operations to help diagnose slow PCs
