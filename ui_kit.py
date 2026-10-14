@@ -115,13 +115,27 @@ LOGO_PNG = os.path.join(ASSETS, "Process Killer Logo.png")
 LOGO_ICO = os.path.join(ASSETS, "Process Killer Logo.ico")
 
 
+_logo_small = None
+
+
+def _logo_256():
+    """Decode the 1254px PNG once and keep a 256px copy: every other size is scaled from this."""
+    global _logo_small
+    if _logo_small is None:
+        im = Image.open(LOGO_PNG)
+        im.draft("RGBA", (512, 512))
+        _logo_small = im.convert("RGBA").resize((256, 256), Image.LANCZOS)
+    return _logo_small
+
+
 def logo_image(size):
     """Logo scaled to size x size (None if the file is missing)."""
     if not os.path.exists(LOGO_PNG):
         return None
     try:
         if Image:
-            im = Image.open(LOGO_PNG).convert("RGBA").resize((size, size), Image.LANCZOS)
+            base = _logo_256()
+            im = base if size == 256 else base.resize((size, size), Image.LANCZOS)
             return ImageTk.PhotoImage(im)
         img = tk.PhotoImage(file=LOGO_PNG)
         return img.subsample(max(1, img.width() // size))

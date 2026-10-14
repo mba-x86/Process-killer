@@ -9,6 +9,7 @@ from tkinter import ttk
 import psutil
 
 import core
+import optimizer
 import sysinfo
 from pages_extra import Sparkline, fmt_size, gauge_color
 from ui_kit import ACCENT, BORDER, CARD, CARD2, DANGER, FG, FONT, MUTED, OK, WARN, DataTable, Page, page_header
@@ -87,6 +88,8 @@ class DashboardPage(Page):
         dash_styles()
         self.sections, self.ticking, self.tick_n = [], False, 0
         self.dx_lbl = None
+        self.dx_busy = self.spec_busy = self.drives_busy = False
+        self.cores = (psutil.cpu_count(logical=False) or "?", psutil.cpu_count())
         self.last_net = psutil.net_io_counters()
         self.last_t = time.time()
         self.peak = 1.0
@@ -137,7 +140,10 @@ class DashboardPage(Page):
         top = ttk.Frame(specs, style="Card.TFrame")
         top.pack(fill="x", pady=(0, 8), padx=(0, 10))
         ttk.Label(top, text="System specifications", style="CardH2.TLabel").pack(side="left")
-        ttk.Button(top, text="Refresh", style="Ghost.TButton", command=self.load_specs).pack(side="right")
+        self.spec_state = ttk.Label(top, text="", style="CardMuted.TLabel")
+        self.spec_state.pack(side="left", padx=10)
+        ttk.Button(top, text="Refresh", style="Ghost.TButton",
+                   command=lambda: self.load_specs(force=True)).pack(side="right")
         ttk.Button(top, text="Copy report", style="Ghost.TButton", command=self.copy_report).pack(side="right")
         self.spec_scroll = ScrollFrame(specs)
         self.spec_scroll.pack(fill="both", expand=True)
@@ -156,7 +162,7 @@ class DashboardPage(Page):
         self.top.sort_by("mem")
         self.top.sort_by("mem")
 
-        self.load_specs()
+        self.after(300, self.load_specs)      # let the window appear first
 
     def _ring_card(self, parent, col, title):
         f = ttk.Frame(parent, style="Card.TFrame", padding=16)
@@ -175,19 +181,35 @@ class DashboardPage(Page):
         return {"ring": ring, "big": big, "small": small}
 
     # ---- specs
-    def load_specs(self):
-        sf = self.spec_scroll
-        sf.clear()
-        ttk.Label(sf.inner, text="Reading hardware information…", style="CardMuted.TLabel").pack(anchor="w", pady=8)
-        pb = ttk.Progressbar(sf.inner, mode="indeterminate", style="Thin.Horizontal.TProgressbar", length=260)
-        pb.pack(anchor="w")
-        pb.start(12)
-        self.main.bg(sysinfo.collect, self._specs_loaded, lambda e: self._specs_loaded([]))
+    def load_specs(self, force=False):
+        """Show something immediately (last saved report, or a quick registry read on first run),
+        then replace it with the full WMI read when that finishes in the background."""
+        if self.spec_busy:
+            return
+        self.spec_busy = True
+        self.spec_state.configure(text="Updating…")
+        quick = None if force else sysinfo.load_cached_specs()
+        self._render_specs(quick or sysinfo.collect_fast())
+        self.main.bg(sysinfo.collect, self._specs_loaded, self._specs_failed)
+
+    def _specs_failed(self, _e):
+        self.spec_busy = False
+        self.spec_state.configure(text="")
 
     def _specs_loaded(self, sections):
+        self.spec_busy = False
+        self.spec_state.configure(text="")
+        if not sections:
+            return
+        sysinfo.save_cached_specs(sections)
+        self._render_specs(sections)
+
+    def _render_specs(self, sections):
         self.sections = sections
         sf = self.spec_scroll
+        keep = sf.canvas.yview()[0]
         sf.clear()
+        self.dx_lbl = None
         if not sections:
             ttk.Label(sf.inner, text="Could not read hardware information.", style="CardMuted.TLabel").pack(anchor="w")
             return
@@ -202,15 +224,20 @@ class DashboardPage(Page):
                 val.grid(row=i, column=1, sticky="nw", pady=2)
                 if k == "DirectX":
                     self.dx_lbl = val
-        if getattr(self, "dx_lbl", None) is not None and self.dx_lbl.winfo_exists():
-            self.main.bg(sysinfo.directx_text, self._dx_done)
+        # DirectX needs dxdiag (~30 s): only run it when we have no recent answer.
+        if self.dx_lbl is not None and not self.dx_busy and sysinfo.directx_needs_refresh():
+            self.dx_busy = True
+            self.main.bg(sysinfo.directx_text, self._dx_done, lambda e: setattr(self, "dx_busy", False))
+        sf.canvas.update_idletasks()
+        sf.canvas.yview_moveto(keep)
         dev = dict(sections[0][1]) if sections else {}
         osr = dict(sections[1][1]) if len(sections) > 1 else {}
         self.sub.configure(text=f"{dev.get('Device name', socket.gethostname())} · {osr.get('Edition', 'Windows')}"
                                 f" · {dev.get('Model', '')} · up {sysinfo.uptime_text()}")
 
     def _dx_done(self, text):
-        if self.dx_lbl.winfo_exists():
+        self.dx_busy = False
+        if self.dx_lbl is not None and self.dx_lbl.winfo_exists():
             self.dx_lbl.configure(text=text)
         for title, rows in self.sections:
             for n, (k, _v) in enumerate(rows):
@@ -232,13 +259,13 @@ class DashboardPage(Page):
     def _tick(self):
         if not self.winfo_exists():
             return
-        if not self.winfo_ismapped():
-            self.ticking = False
+        if not self.winfo_ismapped():          # other page, or window minimized: idle cheaply, don't stop
+            self.after(1000, self._tick)
             return
         self.tick_n += 1
         cpu = psutil.cpu_percent(interval=None)
         self.cpu["ring"].set_target(cpu)
-        self.cpu["big"].configure(text=f"{psutil.cpu_count(logical=False) or '?'}C / {psutil.cpu_count()}T")
+        self.cpu["big"].configure(text=f"{self.cores[0]}C / {self.cores[1]}T")
         f = psutil.cpu_freq()
         self.cpu["small"].configure(text=f"{f.current / 1000:.2f} GHz now" if f else "")
         r = psutil.virtual_memory()
@@ -255,38 +282,39 @@ class DashboardPage(Page):
         self.net_up.configure(text=f"↑ {fmt_size(up)}/s")
         self.peak = max(self.peak * 0.98, down, 50_000)
         self.net_spark.push(100 * down / self.peak)
-        if self.tick_n % 3 == 1:
+        if self.tick_n % 5 == 1:                # walking every process is the costliest thing we do
             self._refresh_top()
         self._health(cpu, r.percent)
         self.after(1000, self._tick)
 
     def _update_drives(self):
-        parts = []
-        for p in psutil.disk_partitions(all=False):
-            if "cdrom" in p.opts or not p.fstype:
-                continue
-            try:
-                parts.append((p.mountpoint, psutil.disk_usage(p.mountpoint)))
-            except OSError:
-                continue
+        """Disk queries can stall (sleeping USB disks, slow security software) - never on the UI thread."""
+        if self.drives_busy:
+            return
+        self.drives_busy = True
+        self.main.bg(optimizer.list_partitions, self._apply_drives, lambda e: setattr(self, "drives_busy", False))
+
+    def _apply_drives(self, parts):
+        self.drives_busy = False
         for w in self.drives_box.winfo_children():
             w.destroy()
         sysdrive = os.environ.get("SystemDrive", "C:").upper()
         self.drive_pct = {}
-        for mount, u in parts:
-            self.drive_pct[mount.upper()[:2]] = u.percent
+        for p in parts:
+            mount, pct = p["mount"], p["percent"]
+            self.drive_pct[mount.upper()[:2]] = pct
             line = ttk.Frame(self.drives_box, style="Card.TFrame")
             line.pack(fill="x", pady=(0, 8))
             ttk.Label(line, text=mount, style="Card.TLabel", font=(FONT, 10, "bold")).pack(side="left")
-            ttk.Label(line, text=f"{fmt_size(u.free)} free of {fmt_size(u.total)}", style="CardKey.TLabel").pack(side="right")
+            ttk.Label(line, text=f"{fmt_size(p['free'])} free of {fmt_size(p['total'])}", style="CardKey.TLabel").pack(side="right")
             c = tk.Canvas(self.drives_box, height=6, bg=CARD2, highlightthickness=0)
             c.pack(fill="x", pady=(0, 6))
-            c.bind("<Configure>", lambda e, c=c, pct=u.percent: (c.delete("all"), c.create_rectangle(
+            c.bind("<Configure>", lambda e, c=c, pct=pct: (c.delete("all"), c.create_rectangle(
                 0, 0, e.width * pct / 100, 6, fill=gauge_color(pct), width=0)))
-        sd = psutil.disk_usage(sysdrive + "\\")
-        self.dsk["ring"].set_target(sd.percent)
-        self.dsk["big"].configure(text=f"{fmt_size(sd.free)} free")
-        self.dsk["small"].configure(text=f"{fmt_size(sd.used)} used of {fmt_size(sd.total)}")
+            if mount.upper().startswith(sysdrive):
+                self.dsk["ring"].set_target(pct)
+                self.dsk["big"].configure(text=f"{fmt_size(p['free'])} free")
+                self.dsk["small"].configure(text=f"{fmt_size(p['used'])} used of {fmt_size(p['total'])}")
 
     def _refresh_top(self):
         if self.proc_pending:

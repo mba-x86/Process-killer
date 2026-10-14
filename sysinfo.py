@@ -304,6 +304,102 @@ def collect():
     return sections
 
 
+# ------------------------------------------------------------------ instant paths (no WMI / PowerShell)
+
+SPECS_CACHE = os.path.join(os.environ.get("APPDATA", "."), "ProcessKiller", "specs.json")
+
+
+def load_cached_specs():
+    """Report from the last full read (hardware rarely changes) so the dashboard is instant."""
+    try:
+        with open(SPECS_CACHE, encoding="utf-8") as f:
+            data = json.load(f)
+        return [(t, [tuple(r) for r in rows]) for t, rows in data["sections"]]
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+
+
+def save_cached_specs(sections):
+    try:
+        os.makedirs(os.path.dirname(SPECS_CACHE), exist_ok=True)
+        with open(SPECS_CACHE, "w", encoding="utf-8") as f:
+            json.dump({"saved": time.time(), "sections": [[t, [list(r) for r in rows]] for t, rows in sections]}, f)
+    except OSError:
+        pass
+
+
+def directx_needs_refresh(max_age_days=7):
+    try:
+        return time.time() - os.path.getmtime(DX_CACHE) > max_age_days * 86400
+    except OSError:
+        return True
+
+
+def _reg(path, name, hive=winreg.HKEY_LOCAL_MACHINE, default=""):
+    try:
+        with winreg.OpenKey(hive, path) as k:
+            return winreg.QueryValueEx(k, name)[0]
+    except OSError:
+        return default
+
+
+def collect_fast():
+    """Everything that can be read in a few milliseconds from the registry / psutil.
+    Used on first run (and while the full WMI read finishes in the background)."""
+    import platform
+    bios = r"HARDWARE\DESCRIPTION\System\BIOS"
+    cur = r"SOFTWARE\Microsoft\Windows NT\CurrentVersion"
+    s = _clean
+    sections = []
+    sections.append(("Device", [("Device name", socket.gethostname()),
+                                ("Manufacturer", s(_reg(bios, "SystemManufacturer")) or "—"),
+                                ("Model", s(_reg(bios, "SystemProductName")) or "—"),
+                                ("User", os.environ.get("USERNAME", "—"))]))
+    build = str(_reg(cur, "CurrentBuild", default="0"))
+    name = str(_reg(cur, "ProductName", default="Windows"))
+    if build.isdigit() and int(build) >= 22000:
+        name = name.replace("Windows 10", "Windows 11")
+    inst = _reg(cur, "InstallDate", default=0)
+    sections.append(("Operating system", [
+        ("Edition", name),
+        ("Version", f"{_reg(cur, 'DisplayVersion', default='')} (build {build}.{_reg(cur, 'UBR', default=0)})".strip()),
+        ("Architecture", "64-bit" if platform.machine().endswith("64") else "32-bit"),
+        ("Installed on", time.strftime("%Y-%m-%d", time.localtime(inst)) if inst else "—")]))
+    sections.append(("Security & firmware", [("Firmware mode", firmware_mode()), ("Secure Boot", secure_boot()),
+                                             ("TPM", "Detecting…"), ("Virtualization", "Detecting…")]))
+    cpu = r"HARDWARE\DESCRIPTION\System\CentralProcessor\0"
+    mhz = _reg(cpu, "~MHz", default=0)
+    sections.append(("Processor", [("Model", s(_reg(cpu, "ProcessorNameString")).strip() or "—"),
+                                   ("Cores / threads", f"{psutil.cpu_count(logical=False) or '?'} cores / "
+                                                       f"{psutil.cpu_count()} threads"),
+                                   ("Base speed", f"{mhz / 1000:.2f} GHz" if mhz else "—")]))
+    sections.append(("Memory", [("Total", fmt_size(psutil.virtual_memory().total)),
+                                ("Modules", "Detecting…"), ("Page file", fmt_size(psutil.swap_memory().total))]))
+    vram = gpu_vram()
+    rows = [(n, fmt_size(m) + " VRAM") for n, m in vram.items() if m]
+    rows.append(("DirectX", directx_cached() or "Detecting…"))
+    sections.append(("Graphics", rows))
+    sections.append(("Motherboard & BIOS", [
+        ("Motherboard", f"{s(_reg(bios, 'BaseBoardManufacturer'))} {s(_reg(bios, 'BaseBoardProduct'))}".strip() or "—"),
+        ("BIOS", f"{s(_reg(bios, 'BIOSVendor'))} {s(_reg(bios, 'BIOSVersion'))}".strip() or "—"),
+        ("BIOS date", s(_reg(bios, "BIOSReleaseDate")) or "—")]))
+    try:
+        nets = []
+        stats = psutil.net_if_stats()
+        for nic, addrs in psutil.net_if_addrs().items():
+            if not stats.get(nic) or not stats[nic].isup:
+                continue
+            ip = next((a.address for a in addrs if a.family == socket.AF_INET and not a.address.startswith(("127.", "169.254."))), "")
+            if ip:
+                mac = next((a.address for a in addrs if a.family == psutil.AF_LINK), "")
+                nets += [(nic, ip)] + ([("   MAC address", mac.replace("-", ":"))] if mac else [])
+        if nets:
+            sections.append(("Network", nets[:6]))
+    except Exception:  # noqa: BLE001
+        pass
+    return sections
+
+
 def uptime_text():
     s = int(time.time() - psutil.boot_time())
     d, s = divmod(s, 86400)

@@ -220,9 +220,7 @@ class OptimizerPage(Page):
             return
         if self.winfo_ismapped():
             self._update_ram()
-            self.after(1000, self._tick)
-        else:
-            self.ticking = False
+        self.after(1000, self._tick)           # keep polling cheaply so it resumes after minimize/restore
 
     def _update_ram(self):
         r = optimizer.ram_info()
@@ -471,7 +469,13 @@ class StoragePage(Page):
         self.load_partitions()
 
     def load_partitions(self):
-        self.parts = optimizer.list_partitions()
+        # disk queries can stall (sleeping USB disks, slow security software): keep them off the UI thread
+        self.main.bg(optimizer.list_partitions, self._partitions_loaded)
+
+    def _partitions_loaded(self, parts):
+        if self.scanning:
+            return
+        self.parts = parts
         for w in self.cards_row.winfo_children():
             w.destroy()
         self.cards, self.part_keys, values = {}, [], []

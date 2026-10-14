@@ -220,16 +220,38 @@ def snap_processes():
 
 
 def snap_services():
+    """All services. Uses psutil's two low-level queries per service instead of as_dict(), which makes
+    ~8 Service Control Manager calls per service (slow on PCs with many vendor services)."""
     out = []
     for s in psutil.win_service_iter():
         try:
-            d = s.as_dict()
-            out.append({"name": d["name"], "display": d["display_name"], "status": d["status"],
-                        "start": d["start_type"], "path": d.get("binpath") or "",
-                        "pid": d.get("pid")})
+            try:
+                cfg, st = s._query_config(), s._query_status()
+                row = {"name": s.name(), "display": cfg["display_name"], "status": st["status"],
+                       "start": cfg["start_type"], "path": cfg["binpath"] or "", "pid": st.get("pid")}
+            except AttributeError:  # psutil internals changed: fall back to the public API
+                row = {"name": s.name(), "display": s.display_name(), "status": s.status(),
+                       "start": s.start_type(), "path": s.binpath() or "", "pid": s.pid()}
+            out.append(row)
         except Exception:  # noqa: BLE001
             continue
     return out
+
+
+_svc_cache = (0.0, [])
+
+
+def cached_services(max_age=20):
+    global _svc_cache
+    if time.time() - _svc_cache[0] > max_age:
+        _svc_cache = (time.time(), snap_services())
+    return _svc_cache[1]
+
+
+def invalidate_caches():
+    """Call after anything that changes services or tasks."""
+    global _svc_cache, _task_cache
+    _svc_cache, _task_cache = (0.0, []), (0.0, [])
 
 
 def list_startup():
@@ -249,10 +271,42 @@ def list_startup():
 _task_cache = (0.0, [])
 
 
-def list_tasks(force=False):
-    global _task_cache
-    if not force and time.time() - _task_cache[0] < 120:
-        return _task_cache[1]
+TASKS_DIR = os.path.join(os.environ.get("SystemRoot", r"C:\Windows"), "System32", "Tasks")
+
+
+def _tasks_from_files():
+    """Read the task definitions straight from System32\\Tasks (a few ms) instead of `schtasks /query /v`,
+    which takes many seconds on PCs with lots of vendor tasks. Returns None if the folder is unreadable."""
+    import xml.etree.ElementTree as ET
+    try:
+        entries = list(os.scandir(TASKS_DIR))
+    except OSError:
+        return None
+    rows = []
+    stack = [e for e in entries if not (e.is_dir() and e.name.lower() == "microsoft")]
+    while stack:
+        e = stack.pop()
+        try:
+            if e.is_dir(follow_symlinks=False):
+                stack.extend(os.scandir(e.path))
+                continue
+            root = ET.parse(e.path).getroot()
+        except (OSError, ET.ParseError):
+            continue
+        ns = {"t": root.tag.split("}")[0].strip("{")} if root.tag.startswith("{") else {}
+        q = (lambda p: p.replace("t:", "")) if not ns else (lambda p: p)
+        cmds = []
+        for ex in root.iterfind(q(".//t:Actions/t:Exec"), ns):
+            c = (ex.findtext(q("t:Command"), "", ns) or "").strip()
+            a = (ex.findtext(q("t:Arguments"), "", ns) or "").strip()
+            cmds.append(f"{c} {a}".strip())
+        enabled = (root.findtext(q(".//t:Settings/t:Enabled"), "true", ns) or "true").lower() != "false"
+        name = "\\" + os.path.relpath(e.path, TASKS_DIR).replace("/", "\\")
+        rows.append({"name": name, "cmd": " | ".join(cmds), "status": "Ready" if enabled else "Disabled"})
+    return rows
+
+
+def _tasks_from_schtasks():
     ok, text = run(["schtasks", "/query", "/fo", "csv", "/v"], 90)
     rows, seen = [], set()
     if ok:
@@ -263,13 +317,24 @@ def list_tasks(force=False):
                 continue
             seen.add(r[1])
             rows.append({"name": r[1], "cmd": r[8], "status": r[3]})
+    return rows
+
+
+def list_tasks(force=False):
+    global _task_cache
+    if not force and time.time() - _task_cache[0] < 120:
+        return _task_cache[1]
+    rows = _tasks_from_files()
+    if rows is None:                       # not allowed to read the folder (not elevated)
+        rows = _tasks_from_schtasks()
     _task_cache = (time.time(), rows)
     return rows
 
 
-def snapshot():
-    return {"procs": snap_processes(), "services": snap_services(),
-            "startup": list_startup(), "tasks": list_tasks(force=True)}
+def snapshot(fresh=False):
+    """Processes are always live. Services (20 s) and tasks (2 min) are cached unless fresh=True."""
+    return {"procs": snap_processes(), "services": snap_services() if fresh else cached_services(),
+            "startup": list_startup(), "tasks": list_tasks(force=fresh)}
 
 
 # ------------------------------------------------------------------ relation finder
@@ -332,7 +397,7 @@ def find_related(app, snap=None):
 
 def find_leftovers(app):
     """After an uninstall: whatever related things are still on the machine."""
-    items = [r for r in find_related(app) if r.kind != "process" or not r.protected]
+    items = [r for r in find_related(app, snapshot(fresh=True)) if r.kind != "process" or not r.protected]
     core = core_name(app.name).lower()
     loc = safe_location(app.location)
     seen = set()
@@ -393,6 +458,7 @@ def svc_status(name):
 
 
 def svc_stop(data, timeout=20):
+    invalidate_caches()
     name = data["name"]
     if svc_status(name) in (None, "stopped"):
         return True, "already stopped"
@@ -406,11 +472,13 @@ def svc_stop(data, timeout=20):
 
 
 def svc_start(data):
+    invalidate_caches()
     ok, out = run(["sc", "start", data["name"]])
     return (ok or "1056" in out), "service started" if (ok or "1056" in out) else _last(out)
 
 
 def svc_config(data, mode):
+    invalidate_caches()
     ok, out = run(["sc", "config", data["name"], "start=", mode])
     return ok, {"auto": "startup: automatic", "demand": "startup: manual",
                 "disabled": "startup: disabled"}[mode] if ok else _last(out)
@@ -436,6 +504,7 @@ def svc_restart(data):
 
 
 def svc_delete(data):
+    invalidate_caches()
     svc_stop(data, timeout=8)
     ok, out = run(["sc", "delete", data["name"]])
     return ok, "service deleted" if ok else _last(out)
@@ -453,6 +522,7 @@ def act_startup_remove(data):
 
 
 def act_task_delete(data):
+    invalidate_caches()
     ok, out = run(["schtasks", "/delete", "/tn", data["name"], "/f"])
     return ok, "task deleted" if ok else _last(out)
 

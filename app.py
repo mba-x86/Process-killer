@@ -590,7 +590,7 @@ class ProcessesPage(Page):
                    command=lambda: self.kill(False)).pack(side="left", padx=(0, 6))
         ttk.Button(act, text="End process tree", command=lambda: self.kill(True)).pack(side="left", padx=(0, 6))
         ttk.Button(act, text="Open file location", command=self.locate).pack(side="left")
-        self.main.after(3000, self._tick)
+        self.main.after(4000, self._tick)
 
     def on_show(self):
         self.refresh()
@@ -598,7 +598,7 @@ class ProcessesPage(Page):
     def _tick(self):
         if self.auto.get() and self.winfo_ismapped():
             self.refresh()
-        self.main.after(3000, self._tick)
+        self.main.after(4000, self._tick)
 
     def refresh(self):
         if self.pending:
@@ -772,6 +772,7 @@ class ActivityPage(Page):
 
 class Main(tk.Tk):
     def __init__(self):
+        _t0 = time.perf_counter()
         super().__init__()
         self.title("Process Killer")
         sc = self.winfo_fpixels("1i") / 96
@@ -825,6 +826,9 @@ class Main(tk.Tk):
         self.current = None
         self.update_info = None
         self.show("dashboard")
+        self.log(f"Started in {time.perf_counter() - _t0:.1f}s · {'Administrator' if adm else 'limited'} · "
+                 f"version {__version__}")
+        self.after(2500, lambda: self.bg(core.snapshot))     # warm service/task caches: first app click is instant
         if updater.auto_check_enabled() and updater.manifest_url():
             self.after(4000, lambda: self.check_updates(manual=False))
 
@@ -839,12 +843,18 @@ class Main(tk.Tk):
 
     # ---- threading helpers (Tk is only touched from the main thread)
     def bg(self, fn, cb=None, on_err=None):
+        name = getattr(fn, "__qualname__", "task").replace("<locals>.", "")
+
         def run():
+            t0 = time.perf_counter()
             try:
                 res = fn()
             except Exception as e:  # noqa: BLE001
                 self.q.put(lambda: self._err(e, on_err))
                 return
+            took = time.perf_counter() - t0
+            if took > 1.5:      # performance diagnostics: shows up on the Activity page and in the log file
+                self.q.put(lambda: self.log(f"Slow task: {name} took {took:.1f}s", "info"))
             if cb:
                 self.q.put(lambda: cb(res))
         threading.Thread(target=run, daemon=True).start()
