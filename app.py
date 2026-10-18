@@ -76,6 +76,9 @@ class AppsPage(Page):
         self.d_meta.pack(anchor="w", pady=(4, 0))
         self.d_loc = ttk.Label(d, style="CardMuted.TLabel", wraplength=290, justify="left")
         self.d_loc.pack(anchor="w", pady=(2, 10))
+        self.d_warn = ttk.Label(d, style="CardWarn.TLabel", wraplength=290, justify="left",
+                                text="⚠  The uninstaller file is missing, so Windows can't remove this. "
+                                     "Process Killer can remove the dead entry and its leftover files.")
         ttk.Separator(d).pack(fill="x", pady=6)
         ttk.Label(d, text="Running in the background", style="CardH2.TLabel").pack(anchor="w", pady=(6, 4))
         self.d_status = ttk.Label(d, style="CardMuted.TLabel", wraplength=290, justify="left")
@@ -106,6 +109,12 @@ class AppsPage(Page):
         meta = " · ".join(x for x in (app.publisher, app.version, core.fmt_kb(app.size_kb)) if x)
         self.d_meta.configure(text=meta or "No details published")
         self.d_loc.configure(text=app.location or "Install folder unknown")
+        broken = core.uninstaller_missing(app)
+        if broken:
+            self.d_warn.pack(anchor="w", pady=(0, 8), after=self.d_loc)
+        else:
+            self.d_warn.pack_forget()
+        self.btn_uninstall.configure(text="Remove broken entry…" if broken else "Uninstall…")
         self.btn_open.configure(state="normal" if app.location and os.path.isdir(app.location) else "disabled")
         self.refresh_related()
 
@@ -219,6 +228,7 @@ class Wizard(tk.Toplevel):
     def __init__(self, main, app, on_close):
         super().__init__(main)
         self.main, self.app, self.on_close, self.busy = main, app, on_close, False
+        self.broken = core.uninstaller_missing(app)      # stale entry: there is no uninstaller to run
         self.title(f"Uninstall {app.name}")
         self.configure(bg=BG)
         self.transient(main)
@@ -298,6 +308,14 @@ class Wizard(tk.Toplevel):
     def step_review(self, items):
         self.clear()
         self.items = items
+        if self.broken:
+            warn = ttk.Frame(self.body, style="Banner.TFrame", padding=12)
+            warn.pack(fill="x", pady=(0, 12))
+            ttk.Label(warn, style="Banner.TLabel", wraplength=700, justify="left",
+                      text=f"⚠  The uninstaller for {self.app.name} is missing "
+                           f"({os.path.basename(core._exe_of(self.app.uninstall))}), so Windows' Uninstall button "
+                           "fails. We'll remove the dead entry from “Installed apps” (a backup is saved so it can "
+                           "be restored) and then clean up the leftover files.").pack(anchor="w")
         if items:
             ttk.Label(self.body, text="Stop related items before uninstalling?", style="Big.TLabel").pack(anchor="w")
             ttk.Label(self.body, wraplength=720, justify="left", style="Muted.TLabel",
@@ -319,19 +337,20 @@ class Wizard(tk.Toplevel):
             ttk.Label(self.body, text="✓", style="Ok.TLabel", font=(FONT, 40)).pack(pady=(60, 0))
             ttk.Label(self.body, text="Nothing related is running", style="Big.TLabel").pack()
             ttk.Label(self.body, text="No background processes, services, startup items or tasks "
-                                      "were found. You can uninstall straight away.",
+                                      "were found. You can continue straight away.",
                       style="Muted.TLabel", wraplength=560, justify="center").pack(pady=8)
         self.silent = tk.BooleanVar(value=False)
-        if self.app.quiet:
+        if self.app.quiet and not self.broken:
             ttk.Checkbutton(self.body, text="Use the silent uninstaller (no prompts)",
                             variable=self.silent).pack(anchor="w", pady=(10, 0))
         right = []
+        verb = "remove entry" if self.broken else "uninstall"
         if items:
-            right.append(("Uninstall without stopping", "TButton", lambda: self.step_run([])))
-            right.append(("Stop selected & uninstall", "Accent.TButton",
+            right.append((f"{verb.capitalize()} without stopping", "TButton", lambda: self.step_run([])))
+            right.append((f"Stop selected & {verb}", "Accent.TButton",
                           lambda: self.step_run(self.checks.checked())))
         else:
-            right.append(("Uninstall", "Accent.TButton", lambda: self.step_run([])))
+            right.append((verb.capitalize(), "Accent.TButton", lambda: self.step_run([])))
         self.buttons(left=[("Cancel", "Ghost.TButton", self._close)], right=right)
 
     # ---- step 2: stop + uninstall
@@ -339,9 +358,11 @@ class Wizard(tk.Toplevel):
         self.set_step(1)
         self.busy = True
         self.clear()
-        ttk.Label(self.body, text="Uninstalling…", style="Big.TLabel").pack(anchor="w")
+        ttk.Label(self.body, text="Removing entry…" if self.broken else "Uninstalling…",
+                  style="Big.TLabel").pack(anchor="w")
         ttk.Label(self.body, style="Muted.TLabel", wraplength=720, justify="left",
-                  text="Follow any window the uninstaller opens. This page continues by itself "
+                  text="Saving a backup, then removing the dead entry." if self.broken else
+                       "Follow any window the uninstaller opens. This page continues by itself "
                        "when it is finished.").pack(anchor="w", pady=(2, 10))
         pb = ttk.Progressbar(self.body, mode="indeterminate")
         pb.pack(fill="x")
@@ -356,8 +377,12 @@ class Wizard(tk.Toplevel):
                 ok, msg = core.PRE_ACTIONS[r.kind](r.data)
                 say(f"{KIND[r.kind]} “{r.name}” — {msg}", "ok" if ok else "fail")
                 self.main.log(f"[{self.app.name}] {r.name}: {msg}", "ok" if ok else "fail")
-            say("Starting the uninstaller…")
-            ok, msg = core.run_uninstall(self.app, silent)
+            if self.broken:
+                say("Removing the dead entry from Installed apps…")
+                ok, msg = core.remove_uninstall_entry(self.app)
+            else:
+                say("Starting the uninstaller…")
+                ok, msg = core.run_uninstall(self.app, silent)
             say(msg, "ok" if ok else "fail")
             self.main.log(f"[{self.app.name}] uninstall: {msg}", "ok" if ok else "fail")
             return ok, msg
@@ -850,7 +875,8 @@ class Main(tk.Tk):
             try:
                 res = fn()
             except Exception as e:  # noqa: BLE001
-                self.q.put(lambda: self._err(e, on_err))
+                # bind the exception now: Python deletes `e` when this block ends, before the UI thread runs
+                self.q.put(lambda err=e: self._err(err, on_err))
                 return
             took = time.perf_counter() - t0
             if took > 1.5:      # performance diagnostics: shows up on the Activity page and in the log file
@@ -884,6 +910,9 @@ class Main(tk.Tk):
         self._toast_job = self.after(7000, lambda: self.status.configure(text=""))
 
     def log(self, msg, level="info"):
+        if threading.current_thread() is not threading.main_thread():   # workers must not touch Tk
+            self.q.put(lambda: self.log(msg, level))
+            return
         self.pages["activity"].add(msg, level)
         try:
             os.makedirs(LOG_DIR, exist_ok=True)

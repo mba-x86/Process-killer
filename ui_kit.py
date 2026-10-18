@@ -65,6 +65,7 @@ def apply_style(root, sc):
     s.configure("Big.TLabel", font=(FONT, 15, "bold"))
     s.configure("Ok.TLabel", foreground=OK)
     s.configure("Warn.TLabel", foreground=WARN)
+    s.configure("CardWarn.TLabel", background=CARD, foreground=WARN)
 
     s.configure("Treeview", background=CARD, fieldbackground=CARD, foreground=FG,
                 rowheight=int(32 * sc), borderwidth=0, relief="flat")

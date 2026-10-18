@@ -129,7 +129,11 @@ def core_name(name):
 
 
 def _exe_of(cmd):
-    m = re.match(r'\s*"([^"]+)"', cmd) or re.match(r"\s*(\S+?\.exe)", cmd, re.I)
+    """Executable named at the start of an uninstall command. Handles quoted paths and the common
+    unquoted 'C:\\Program Files (x86)\\App\\unins000.exe /SILENT' form (path contains spaces)."""
+    cmd = os.path.expandvars(cmd or "")
+    m = (re.match(r'\s*"([^"]+)"', cmd) or re.match(r"\s*([A-Za-z]:\\.+?\.exe)(?=\s|$)", cmd, re.I)
+         or re.match(r"\s*(\S+?\.exe)", cmd, re.I))
     return m.group(1) if m else ""
 
 
@@ -205,6 +209,53 @@ def app_installed(app):
         return True
     except OSError:
         return False
+
+
+def uninstaller_missing(app):
+    """True when the app's uninstall command points at a file that no longer exists (a stale entry:
+    the program was deleted or moved by hand). Windows' own Uninstall button fails for these."""
+    exe = _exe_of(app.uninstall)
+    if not exe or re.search(r"msiexec|rundll32|cmd\.exe|powershell|explorer\.exe|ms-settings", exe, re.I):
+        return False
+    return os.path.isabs(exe) and not os.path.exists(exe)
+
+
+def _delete_reg_tree(hive, path):
+    flags = winreg.KEY_ALL_ACCESS | winreg.KEY_WOW64_64KEY
+    with winreg.OpenKey(hive, path, 0, flags) as k:
+        while True:
+            try:
+                sub = winreg.EnumKey(k, 0)
+            except OSError:
+                break
+            _delete_reg_tree(hive, path + "\\" + sub)
+    winreg.DeleteKeyEx(hive, path, flags)
+
+
+def remove_uninstall_entry(app):
+    """Delete a stale 'Installed apps' entry. A .reg backup is saved first so it can be restored by
+    double-clicking it. -> (ok, message)"""
+    hive_name = {winreg.HKEY_LOCAL_MACHINE: "HKLM", winreg.HKEY_CURRENT_USER: "HKCU"}.get(app.hive, "")
+    if not hive_name:
+        return False, "unsupported registry location"
+    folder = os.path.join(os.environ.get("APPDATA", "."), "ProcessKiller", "backups")
+    backup = ""
+    try:
+        os.makedirs(folder, exist_ok=True)
+        safe = re.sub(r"[^\w.-]+", "_", app.name)[:60]
+        backup = os.path.join(folder, f"{safe}-{time.strftime('%Y%m%d-%H%M%S')}.reg")
+        ok, out = run(["reg", "export", f"{hive_name}\\{app.regpath}", backup, "/y"])
+        if not ok:
+            return False, f"could not save a registry backup first ({_last(out)}) - nothing was changed"
+    except OSError as e:
+        return False, f"could not save a registry backup first ({e}) - nothing was changed"
+    try:
+        _delete_reg_tree(app.hive, app.regpath)
+    except PermissionError:
+        return False, "access denied - run Process Killer as Administrator"
+    except OSError as e:
+        return False, str(e)
+    return True, f"entry removed (backup: {backup})"
 
 
 # ------------------------------------------------------------------ snapshots
@@ -541,6 +592,8 @@ def act_folder_recycle(data):
 
 
 def run_uninstall(app, silent=False):
+    if uninstaller_missing(app):
+        return False, f"the uninstaller is missing: {_exe_of(app.uninstall)}"
     cmd = app.quiet if (silent and app.quiet) else app.uninstall
     if re.search(r"msiexec", cmd, re.I):
         cmd = re.sub(r"/i(?=\s*\{)", "/X", cmd, flags=re.I)
