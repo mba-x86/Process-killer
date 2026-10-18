@@ -24,6 +24,16 @@ from version import COPYRIGHT, __version__
 
 # ------------------------------------------------------------------ Applications page
 
+BROKEN_NOTE = ("⚠  The uninstaller file is missing, so Windows can't remove this. "
+               "Process Killer can remove the dead entry and its leftover files.")
+EDGE_NOTE = ("⚠  Built into Windows. Microsoft doesn't officially support removing Edge, and Windows Update "
+             "can bring it back. Process Killer can remove it safely (WebView2 is kept).")
+EDGE_WARNING = ("⚠  Microsoft Edge is built into Windows, and Microsoft does not officially support removing it. "
+                "Some Windows features (Widgets, search results, Help links) may still try to open Edge or fall "
+                "back to another browser, and Windows Update can install it again. The “Microsoft Edge WebView2 "
+                "Runtime” is NOT removed - other apps depend on it.")
+
+
 class AppsPage(Page):
     def __init__(self, parent, main):
         super().__init__(parent, main)
@@ -76,27 +86,26 @@ class AppsPage(Page):
         self.d_meta.pack(anchor="w", pady=(4, 0))
         self.d_loc = ttk.Label(d, style="CardMuted.TLabel", wraplength=290, justify="left")
         self.d_loc.pack(anchor="w", pady=(2, 10))
-        self.d_warn = ttk.Label(d, style="CardWarn.TLabel", wraplength=290, justify="left",
-                                text="⚠  The uninstaller file is missing, so Windows can't remove this. "
-                                     "Process Killer can remove the dead entry and its leftover files.")
+        self.d_warn = ttk.Label(d, style="CardWarn.TLabel", wraplength=290, justify="left", text=BROKEN_NOTE)
         ttk.Separator(d).pack(fill="x", pady=6)
         ttk.Label(d, text="Running in the background", style="CardH2.TLabel").pack(anchor="w", pady=(6, 4))
         self.d_status = ttk.Label(d, style="CardMuted.TLabel", wraplength=290, justify="left")
         self.d_status.pack(anchor="w")
         box = ttk.Frame(d, style="Card.TFrame")
         box.pack(fill="both", expand=True, pady=(8, 8))
-        self.rel = ttk.Treeview(box, columns=("state",), show="tree", height=7,
+        self.rel = ttk.Treeview(box, columns=("state",), show="tree", height=3,
                                 selectmode="none")
         self.rel.column("#0", width=210)
         self.rel.column("state", width=70, anchor="e")
         self.rel.pack(fill="both", expand=True)
         self.btn_uninstall = ttk.Button(d, text="Uninstall…", style="Accent.TButton",
                                         command=self.uninstall)
-        self.btn_uninstall.pack(fill="x", pady=(4, 6))
+        # buttons are anchored to the bottom (packed before the expanding list) so a long warning can't push them off
         self.btn_stop = ttk.Button(d, text="End related processes", command=self.stop_related)
-        self.btn_stop.pack(fill="x", pady=2)
         self.btn_open = ttk.Button(d, text="Open install folder", command=self.open_folder)
-        self.btn_open.pack(fill="x", pady=2)
+        self.btn_open.pack(fill="x", pady=2, side="bottom", before=box)
+        self.btn_stop.pack(fill="x", pady=2, side="bottom", before=box)
+        self.btn_uninstall.pack(fill="x", pady=(4, 6), side="bottom", before=box)
 
     def _selected(self, _e=None):
         sel = self.table.selected()
@@ -109,12 +118,14 @@ class AppsPage(Page):
         meta = " · ".join(x for x in (app.publisher, app.version, core.fmt_kb(app.size_kb)) if x)
         self.d_meta.configure(text=meta or "No details published")
         self.d_loc.configure(text=app.location or "Install folder unknown")
-        broken = core.uninstaller_missing(app)
-        if broken:
+        broken, edge = core.uninstaller_missing(app), core.is_edge(app)
+        if broken or edge:
+            self.d_warn.configure(text=EDGE_NOTE if edge else BROKEN_NOTE)
             self.d_warn.pack(anchor="w", pady=(0, 8), after=self.d_loc)
         else:
             self.d_warn.pack_forget()
-        self.btn_uninstall.configure(text="Remove broken entry…" if broken else "Uninstall…")
+        self.btn_uninstall.configure(text="Remove Microsoft Edge…" if edge else
+                                     "Remove broken entry…" if broken else "Uninstall…")
         self.btn_open.configure(state="normal" if app.location and os.path.isdir(app.location) else "disabled")
         self.refresh_related()
 
@@ -229,6 +240,10 @@ class Wizard(tk.Toplevel):
         super().__init__(main)
         self.main, self.app, self.on_close, self.busy = main, app, on_close, False
         self.broken = core.uninstaller_missing(app)      # stale entry: there is no uninstaller to run
+        self.edge = core.is_edge(app)                    # built-in browser: guarded flow
+        self.edge_others = []
+        self.ack = tk.BooleanVar(value=False)
+        self.block = tk.BooleanVar(value=True)
         self.title(f"Uninstall {app.name}")
         self.configure(bg=BG)
         self.transient(main)
@@ -316,6 +331,26 @@ class Wizard(tk.Toplevel):
                            f"({os.path.basename(core._exe_of(self.app.uninstall))}), so Windows' Uninstall button "
                            "fails. We'll remove the dead entry from “Installed apps” (a backup is saved so it can "
                            "be restored) and then clean up the leftover files.").pack(anchor="w")
+        if self.edge:
+            self.edge_others = core.other_browsers()
+            warn = ttk.Frame(self.body, style="Banner.TFrame", padding=12)
+            warn.pack(fill="x", pady=(0, 10))
+            ttk.Label(warn, style="Banner.TLabel", wraplength=700, justify="left", text=EDGE_WARNING).pack(anchor="w")
+            self.geometry("780x720")                      # this flow has more to show
+            # the two tick-boxes live at the very bottom (packed before the list) so they are always visible
+            opts = ttk.Frame(self.body)
+            opts.pack(side="bottom", fill="x")
+            ttk.Checkbutton(opts, variable=self.ack,
+                            text="I understand the risks and want to remove Microsoft Edge").pack(anchor="w", pady=(6, 0))
+            ttk.Checkbutton(opts, variable=self.block,
+                            text="Also tell Edge's updater not to install Edge again (recommended)").pack(anchor="w", pady=(4, 0))
+            if self.edge_others:
+                ttk.Label(self.body, style="Ok.TLabel", wraplength=700, justify="left",
+                          text="✓  Other browsers on this PC: " + ", ".join(self.edge_others)).pack(anchor="w", pady=(0, 8))
+            else:
+                ttk.Label(self.body, style="Warn.TLabel", wraplength=700, justify="left",
+                          text="✕  No other web browser is installed. Install one first - removal is blocked until "
+                               "you do, so you are never left without a browser.").pack(anchor="w", pady=(0, 8))
         if items:
             ttk.Label(self.body, text="Stop related items before uninstalling?", style="Big.TLabel").pack(anchor="w")
             ttk.Label(self.body, wraplength=720, justify="left", style="Muted.TLabel",
@@ -340,18 +375,38 @@ class Wizard(tk.Toplevel):
                                       "were found. You can continue straight away.",
                       style="Muted.TLabel", wraplength=560, justify="center").pack(pady=8)
         self.silent = tk.BooleanVar(value=False)
-        if self.app.quiet and not self.broken:
+        if self.app.quiet and not self.broken and not self.edge:
             ttk.Checkbutton(self.body, text="Use the silent uninstaller (no prompts)",
                             variable=self.silent).pack(anchor="w", pady=(10, 0))
         right = []
-        verb = "remove entry" if self.broken else "uninstall"
+        verb = "remove Edge" if self.edge else "remove entry" if self.broken else "uninstall"
         if items:
-            right.append((f"{verb.capitalize()} without stopping", "TButton", lambda: self.step_run([])))
+            right.append((f"{verb.capitalize()} without stopping", "TButton", self._guard(lambda: self.step_run([]))))
             right.append((f"Stop selected & {verb}", "Accent.TButton",
-                          lambda: self.step_run(self.checks.checked())))
+                          self._guard(lambda: self.step_run(self.checks.checked()))))
         else:
-            right.append((verb.capitalize(), "Accent.TButton", lambda: self.step_run([])))
+            right.append((verb.capitalize(), "Accent.TButton", self._guard(lambda: self.step_run([]))))
         self.buttons(left=[("Cancel", "Ghost.TButton", self._close)], right=right)
+
+    def _guard(self, go):
+        """Extra safety for Microsoft Edge: another browser present, risks acknowledged, running elevated."""
+        def run():
+            if self.edge:
+                if not self.edge_others:
+                    messagebox.showwarning("Install another browser first",
+                                           "No other web browser was found. Install one (Chrome, Brave, Firefox...) "
+                                           "before removing Microsoft Edge.", parent=self)
+                    return
+                if not self.ack.get():
+                    messagebox.showinfo("Please confirm", "Tick “I understand the risks…” to continue.", parent=self)
+                    return
+                if not core.is_admin():
+                    if messagebox.askyesno("Administrator needed", "Removing Microsoft Edge needs Administrator "
+                                           "rights. Restart Process Killer as Administrator now?", parent=self):
+                        self.main.elevate()
+                    return
+            go()
+        return run
 
     # ---- step 2: stop + uninstall
     def step_run(self, todo):
@@ -370,6 +425,7 @@ class Wizard(tk.Toplevel):
         self.logbox = self._logbox(self.body)
         self.buttons()
         silent = self.silent.get()
+        block_edge = self.edge and self.block.get()
         say = lambda t, lvl="info": self.main.ui(self.say, t, lvl)  # noqa: E731
 
         def work():
@@ -383,6 +439,10 @@ class Wizard(tk.Toplevel):
             else:
                 say("Starting the uninstaller…")
                 ok, msg = core.run_uninstall(self.app, silent)
+                if ok and block_edge:
+                    ok2, msg2 = core.block_edge_reinstall()
+                    say(msg2, "ok" if ok2 else "fail")
+                    self.main.log(f"[{self.app.name}] block reinstall: {msg2}", "ok" if ok2 else "fail")
             say(msg, "ok" if ok else "fail")
             self.main.log(f"[{self.app.name}] uninstall: {msg}", "ok" if ok else "fail")
             return ok, msg

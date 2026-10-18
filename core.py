@@ -52,6 +52,7 @@ class AppInfo:
     quiet: str = ""
     hive: int = 0
     regpath: str = ""
+    no_remove: bool = False
 
 
 @dataclass
@@ -179,9 +180,13 @@ def list_apps():
                                 pass
                 except OSError:
                     continue
-                name = (v.get("DisplayName") or "").strip()
+                # some publishers (Microsoft Edge) prefix the name with invisible direction marks
+                name = "".join(ch for ch in (v.get("DisplayName") or "") if ch.isprintable()).strip()
                 cmd = v.get("UninstallString") or v.get("QuietUninstallString")
-                if (not name or not cmd or v.get("SystemComponent") == 1 or v.get("NoRemove") == 1
+                # Windows marks Microsoft Edge "NoRemove"; we still list it (guarded flow) because people ask
+                # to remove it. WebView2 is SystemComponent and stays hidden: other apps depend on it.
+                edge = name.lower() == "microsoft edge" and "--msedge" in (cmd or "").lower()
+                if (not name or not cmd or v.get("SystemComponent") == 1 or (v.get("NoRemove") == 1 and not edge)
                         or "ParentKeyName" in v or v.get("ReleaseType") in ("Update", "Hotfix", "Security Update")
                         or re.match(r"^(KB\d+|Update for|Security Update)", name, re.I)):
                     continue
@@ -198,7 +203,8 @@ def list_apps():
                     name=name, publisher=str(v.get("Publisher") or ""), version=ver,
                     size_kb=size if isinstance(size, int) else 0, date=d,
                     location=_infer_location(v), uninstall=v.get("UninstallString") or cmd,
-                    quiet=v.get("QuietUninstallString") or "", hive=hive, regpath=f"{root}\\{sub}"))
+                    quiet=v.get("QuietUninstallString") or "", hive=hive, regpath=f"{root}\\{sub}",
+                    no_remove=v.get("NoRemove") == 1))
     apps.sort(key=lambda a: a.name.lower())
     return apps
 
@@ -209,6 +215,40 @@ def app_installed(app):
         return True
     except OSError:
         return False
+
+
+# ------------------------------------------------------------------ Microsoft Edge (guarded removal)
+
+EDGE_STABLE_GUID = "{56EB18F8-B008-4CBD-B6D2-8C97FE7E9062}"
+EDGE_POLICY_KEY = r"SOFTWARE\Policies\Microsoft\EdgeUpdate"
+BROWSER_WORDS = ("chrome", "brave", "firefox", "opera", "vivaldi")
+
+
+def is_edge(app):
+    return app.name.strip().lower() == "microsoft edge" and "--msedge" in app.uninstall.lower()
+
+
+def other_browsers(apps=None):
+    """Names of other installed browsers, so removing Edge never leaves the PC without one."""
+    names = []
+    for a in apps if apps is not None else list_apps():
+        n = a.name.lower()
+        if any(b in n for b in BROWSER_WORDS) and "webview" not in n and a.name not in names:
+            names.append(a.name)
+    return names
+
+
+def block_edge_reinstall(hive=winreg.HKEY_LOCAL_MACHINE, path=EDGE_POLICY_KEY):
+    """Tell Edge's updater (policy 'Allow installation' = 0 for Edge Stable) not to install Edge again.
+    Undo: delete that value, or set it to 1. WebView2 is not affected. -> (ok, message)"""
+    try:
+        with winreg.CreateKeyEx(hive, path, 0, winreg.KEY_SET_VALUE | winreg.KEY_WOW64_64KEY) as k:
+            winreg.SetValueEx(k, f"Install{EDGE_STABLE_GUID}", 0, winreg.REG_DWORD, 0)
+        return True, f"reinstall blocked (HKLM\\{path} \\ Install{EDGE_STABLE_GUID} = 0)"
+    except PermissionError:
+        return False, "access denied - run Process Killer as Administrator"
+    except OSError as e:
+        return False, str(e)
 
 
 def uninstaller_missing(app):
@@ -455,6 +495,20 @@ def find_leftovers(app):
     if loc and os.path.isdir(loc):
         seen.add(loc)
         items.append(Related("folder", app.location, "Install folder", {"path": app.location}, "path"))
+    if is_edge(app):
+        # Edge's own folder, and (unticked by default) the user's profile data. EdgeUpdate / EdgeWebView are
+        # deliberately NOT offered: WebView2 needs them.
+        pf = os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)")
+        edge_dir = os.path.join(pf, "Microsoft", "Edge").lower()      # the parent folder covers Application\
+        items[:] = [r for r in items if not (r.kind == "folder" and r.name.lower().startswith(edge_dir))]
+        seen.discard(loc)
+        for path, label, reason in (
+                (os.path.join(pf, "Microsoft", "Edge"), "Edge program files", "path"),
+                (os.path.expandvars(r"%LOCALAPPDATA%\Microsoft\Edge"),
+                 "Edge profile data: bookmarks, saved passwords, history", "name")):
+            if os.path.isdir(path) and path.lower() not in seen:
+                seen.add(path.lower())
+                items.append(Related("folder", path, label, {"path": path}, reason))
     for root in roots():
         try:
             for e in os.scandir(root):
@@ -595,6 +649,11 @@ def run_uninstall(app, silent=False):
     if uninstaller_missing(app):
         return False, f"the uninstaller is missing: {_exe_of(app.uninstall)}"
     cmd = app.quiet if (silent and app.quiet) else app.uninstall
+    if is_edge(app):
+        if not is_admin():
+            return False, "removing Microsoft Edge needs Administrator rights"
+        if "--force-uninstall" not in cmd.lower():   # Windows blocks the plain command for Edge
+            cmd += " --force-uninstall"
     if re.search(r"msiexec", cmd, re.I):
         cmd = re.sub(r"/i(?=\s*\{)", "/X", cmd, flags=re.I)
         if silent and "/q" not in cmd.lower():

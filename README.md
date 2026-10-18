@@ -24,3 +24,10 @@ MIT © 2026 mba-x86 - see [LICENSE](LICENSE).
 
 ## Build & release
 See [RELEASING.md](RELEASING.md).
+
+## Removing Microsoft Edge
+Edge is built into Windows, so Windows hides its Uninstall button. Process Killer lists it and runs Edge's own
+uninstaller (needs Administrator). It refuses to run unless another browser is installed, never removes the
+Edge WebView2 Runtime (other apps need it), and can optionally set the Edge Update policy
+`HKLM\SOFTWARE\Policies\Microsoft\EdgeUpdate\Install{56EB18F8-B008-4CBD-B6D2-8C97FE7E9062} = 0`
+so Windows doesn't reinstall it. To undo that, delete that value (or set it to 1) and reinstall Edge from microsoft.com/edge.
