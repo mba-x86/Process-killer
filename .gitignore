@@ -8,3 +8,18 @@ dist-test/
 assets/app.ico
 assets/wizard_small.bmp
 assets/wizard_large.bmp
+
+# --- Tauri 2.0 rewrite ---
+tauri-app/.cache/
+tauri-app/dist/
+tauri-app/src-tauri/target/
+tauri-app/src-tauri/gen/
+tauri-app/installer/*.exe
+tauri-app/installer/*.bmp
+tauri-app/installer/_*.iss
+# the original design export (the unpacked reference lives in tauri-app/design-ref)
+Process Killer Redesign.html
+Screenshot*.png
+
+# local assistant settings
+.claude/
