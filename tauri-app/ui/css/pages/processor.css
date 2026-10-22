@@ -1,0 +1,12 @@
+/* Copyright (c) 2026 mba-x86. Released under the MIT License (see LICENSE). Processor page only. */
+.kv { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; row-gap: 11px; column-gap: 16px; font-size: 13px; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+.cores { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+.core { background: #111418; border: 1px solid var(--card-line); border-radius: 9px; padding: 10px 12px 6px; display: flex; flex-direction: column; gap: 6px; }
+.core-top { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--muted-2); }
+.tag { font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 6px; }
+.tag-p { background: #16233A; color: var(--blue-lbl); }
+.tag-e { background: var(--card-line); color: var(--muted-2); }
+.stat { display: flex; flex-direction: column; gap: 4px; }
+.stat b { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }

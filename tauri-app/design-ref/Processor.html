@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Process Killer — Processor</title>
+<script src="7347f0d0-41de-4ee0-89af-9aa1c26f8e11"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+
+<style>
+body{margin:0;background:#0D0F12}
+a{color:#A7B0BB}a:hover{color:#E8EBEF}
+.nav{display:flex;align-items:center;gap:12px;height:34px;padding:0 12px;border-radius:8px;color:#A7B0BB;text-decoration:none;font-size:13px;font-weight:500}
+.nav:hover{background:#13161B;color:#E8EBEF}
+.nav.on{background:#171B21;color:#E8EBEF;font-weight:600}
+.nav.on svg{color:#FF6B3D}
+.cat{padding:16px 12px 6px;font-size:11px;font-weight:600;letter-spacing:.08em;color:#7F8A96}
+.cat:first-child{padding-top:0}
+*{scrollbar-width:none}
+*::-webkit-scrollbar{display:none}
+.back{display:inline-flex;align-items:center;gap:6px;color:#A7B0BB;text-decoration:none;font-size:13px;font-weight:500}
+.back:hover{color:#E8EBEF}
+.card{background:#14171C;border:1px solid #1F242B;border-radius:12px}
+.lbl{font-size:11px;font-weight:600;letter-spacing:.07em;color:#7F8A96}
+.kv{margin:0;display:grid;grid-template-columns:minmax(0,1fr) auto;row-gap:11px;column-gap:16px;font-size:13px}
+.kv dt{color:#7F8A96}
+.kv dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
+.core{background:#111418;border:1px solid #1F242B;border-radius:9px;padding:10px 12px 6px;display:flex;flex-direction:column;gap:6px}
+.tag{font-size:10px;font-weight:600;padding:1px 6px;border-radius:6px}
+.tp{background:#16233A;color:#8DBBFF}
+.te{background:#1F242B;color:#A7B0BB}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;font-weight:500;font-size:12px;color:#7F8A96;padding:0 10px;height:32px;border-bottom:1px solid #242931;white-space:nowrap}
+.tbl td{padding:0 10px;height:36px;border-bottom:1px solid #1A1E24;white-space:nowrap}
+.tbl tbody tr:last-child td{border-bottom:0}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.mono{font-family:"Geist Mono",ui-monospace,monospace;font-size:12px}
+.nav:focus-visible,.back:focus-visible{outline:2px solid #FF6B3D;outline-offset:2px}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; align-items: stretch; background: #0D0F12; color: #E8EBEF; font-family: Geist, system-ui, sans-serif; font-size: 13px;">
+
+<aside aria-label="Main" style="flex: 1 1 220px; box-sizing: border-box; padding: 22px 12px 18px; background: #0A0C0F; border-right: 1px solid #1B1F25; display: flex; flex-direction: column; gap: 24px;">
+<div style="display: flex; align-items: center; gap: 12px; padding: 0 10px;">
+<svg width="30" height="30" sc-camel-view-box="0 0 28 28" fill="none" aria-hidden="true"><circle cx="14" cy="14" r="11" stroke="#FF6B3D" stroke-width="2.2" stroke-dasharray="14 3.3"></circle><path d="M9.5 9.5l9 9M18.5 9.5l-9 9" stroke="#E8EBEF" stroke-width="2.6" stroke-linecap="round"></path></svg>
+<span style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;">Process Killer</span>
+</div>
+<nav style="display: flex; flex-direction: column; gap: 2px;">
+<div class="cat">OVERVIEW</div>
+<a class="nav" href="Main.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"></rect><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"></rect><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"></rect><rect x="9" y="9" width="4.5" height="4.5" rx="1"></rect></svg>Dashboard</a>
+<div class="cat">PERFORMANCE</div>
+<a class="nav on" href="Processor.dc.html" aria-current="page"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="8" height="8" rx="1.5"></rect><path d="M6.5 1.5v2M9.5 1.5v2M6.5 12.5v2M9.5 12.5v2M1.5 6.5h2M1.5 9.5h2M12.5 6.5h2M12.5 9.5h2"></path></svg>Processor</a>
+<a class="nav" href="Memory.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="1.5" y="4.5" width="13" height="6" rx="1"></rect><path d="M4.5 10.5v2M8 10.5v2M11.5 10.5v2"></path></svg>Memory</a>
+<a class="nav" href="Network.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13V3M2.5 5.5 5 3l2.5 2.5M11 3v10M8.5 10.5 11 13l2.5-2.5"></path></svg>Network</a>
+<a class="nav" href="Graphics.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="1.5" y="4" width="13" height="8" rx="1.5"></rect><circle cx="10" cy="8" r="2"></circle><path d="M4 7h2.5M4 9h2.5"></path></svg>Graphics</a>
+<div class="cat">MANAGE</div>
+<a class="nav" href="Applications.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.8 13.5 4.8v6.4L8 14.2 2.5 11.2V4.8z"></path><path d="M2.5 4.8 8 7.8l5.5-3M8 7.8v6.4"></path></svg>Applications</a>
+<a class="nav" href="Services.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="2.2"></circle><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"></path></svg>Services</a>
+<a class="nav" href="Processes.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 8h3l2-5 3 10 2-5h3"></path></svg>Processes</a>
+<a class="nav" href="Startup.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 1.8v5.5"></path><path d="M4.6 4a5 5 0 1 0 6.8 0"></path></svg>Startup &amp; tasks</a>
+<div class="cat">CLEAN UP</div>
+<a class="nav" href="Optimizer.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M9 1.5 3.5 9H8l-1 5.5L12.5 7H8z"></path></svg>Optimizer</a>
+<a class="nav" href="Storage.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><rect x="1.8" y="9" width="12.4" height="4.5" rx="1"></rect><path d="M3 9 4.8 3h6.4L13 9"></path></svg>Storage analyzer</a>
+<div class="cat">APP</div>
+<a class="nav" href="Activity.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8M2.5 4h.01M2.5 8h.01M2.5 12h.01"></path></svg>Activity</a>
+<a class="nav" href="About.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="6.2"></circle><path d="M8 7.2v4M8 5h.01"></path></svg>About &amp; updates</a>
+</nav>
+<div style="margin-top: auto; padding: 0 12px; display: flex; flex-direction: column; gap: 4px; font-size: 12px;">
+<span style="display: inline-flex; align-items: center; gap: 8px; color: #5BD69A; font-weight: 500;"><span style="width: 7px; height: 7px; border-radius: 50%; background: #45C98A;"></span>Administrator</span>
+<span style="color: #7F8A96;">Version 1.0.3</span>
+<span style="color: #7F8A96;">© 2026 mba-x86</span>
+</div>
+</aside>
+
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 22px 28px 24px; display: flex; flex-direction: column; gap: 14px;">
+<a class="back" href="Main.dc.html"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 4-4 4 4 4"></path></svg>Dashboard</a>
+<header style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; padding-bottom: 4px;">
+<div style="display: flex; flex-direction: column; gap: 6px;"><h1 style="margin: 0; font-size: 26px; font-weight: 600; letter-spacing: -0.02em;">Processor</h1><p style="margin: 0; color: #7F8A96;">Intel(R) Core(TM) i5-14400F · socket U3E1</p></div>
+<span style="display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 12px; border-radius: 14px; background: #14171C; border: 1px solid #1F242B; color: #A7B0BB; font-size: 12px;"><span style="width: 7px; height: 7px; border-radius: 50%; background: #45C98A;"></span>Live · every 1.5 s</span>
+</header>
+
+<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: stretch;">
+<section class="card" style="flex: 999 1 560px; min-width: 0; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px;">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px;">
+<div style="display: flex; flex-direction: column; gap: 4px;"><span class="lbl">UTILIZATION</span><span style="font-size: 40px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums;">10%</span></div>
+<div style="display: flex; gap: 28px;">
+<div style="display: flex; flex-direction: column; gap: 4px;"><span class="lbl">SPEED NOW</span><span style="font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums;">2.50 GHz</span></div>
+<div style="display: flex; flex-direction: column; gap: 4px;"><span class="lbl">PROCESSES</span><span style="font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums;">271</span></div>
+<div style="display: flex; flex-direction: column; gap: 4px;"><span class="lbl">UPTIME</span><span style="font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums;">2h 7m</span></div>
+</div>
+</div>
+<div style="position: relative; display: flex; gap: 10px;">
+<div style="display: flex; flex-direction: column; justify-content: space-between; height: 220px; font-size: 11px; color: #7F8A96; text-align: right; width: 34px; flex: none;"><span>100%</span><span>50%</span><span>0%</span></div>
+<svg sc-camel-view-box="0 0 600 200" sc-camel-preserve-aspect-ratio="none" style="flex: 1; min-width: 0; height: 220px;" aria-hidden="true"><path d="M0,0.5 L600,0.5 M0,50 L600,50 M0,100 L600,100 M0,150 L600,150 M0,199.5 L600,199.5" stroke="#1F242B" stroke-width="1" vector-effect="non-scaling-stroke"></path><path d="M0,182 L20,184 L40,179 L60,183 L80,176 L100,181 L120,183 L140,172 L160,180 L180,182 L200,178 L220,184 L240,175 L260,180 L280,182 L300,168 L320,179 L340,183 L360,181 L380,176 L400,182 L420,180 L440,174 L460,181 L480,183 L500,177 L520,181 L540,179 L560,182 L580,180 L600,180 L600,200 L0,200 Z" fill="#6CA8FF" fill-opacity="0.14"></path><path d="M0,182 L20,184 L40,179 L60,183 L80,176 L100,181 L120,183 L140,172 L160,180 L180,182 L200,178 L220,184 L240,175 L260,180 L280,182 L300,168 L320,179 L340,183 L360,181 L380,176 L400,182 L420,180 L440,174 L460,181 L480,183 L500,177 L520,181 L540,179 L560,182 L580,180 L600,180" fill="none" stroke="#6CA8FF" stroke-width="1.8" vector-effect="non-scaling-stroke"></path></svg>
+</div>
+<div style="display: flex; justify-content: space-between; padding-left: 44px; font-size: 11px; color: #7F8A96;"><span>60 seconds ago</span><span>now</span></div>
+</section>
+
+<section class="card" style="flex: 1 1 300px; min-width: 0; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px;">
+<h2 style="margin: 0; font-size: 15px; font-weight: 600;">Specifications</h2>
+<dl class="kv">
+<dt>Cores</dt><dd>10 <span style="color: #7F8A96;">(6 P + 4 E)</span></dd>
+<dt>Threads</dt><dd>16</dd>
+<dt>Base speed</dt><dd>2.50 GHz</dd>
+<dt>Max turbo</dt><dd>4.70 GHz</dd>
+<dt>L2 cache</dt><dd>10 MB</dd>
+<dt>L3 cache</dt><dd>20 MB</dd>
+<dt>Socket</dt><dd>U3E1</dd>
+<dt>Architecture</dt><dd>64-bit</dd>
+<dt>Virtualization</dt><dd style="color: #5BD69A;">Enabled</dd>
+</dl>
+</section>
+</div>
+
+<div style="flex: 1; display: flex; flex-wrap: wrap; gap: 12px; align-items: stretch;">
+<section class="card" style="flex: 999 1 560px; min-width: 0; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px;">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;"><h2 style="margin: 0; font-size: 15px; font-weight: 600;">Logical processors</h2><span style="display: inline-flex; gap: 10px; font-size: 12px; color: #7F8A96;"><span><span class="tag tp">P</span> Performance core</span><span><span class="tag te">E</span> Efficient core</span></span></div>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px;">
+<div class="core"><div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #A7B0BB;"><span>CPU 0</span><span class="tag tp">P</span></div><svg sc-camel-view-box="0 0 120 36" sc-camel-preserve-aspect-ratio="none" style="width: 100%; height: 34px;" aria-hidden="true"><path d="M0,32 L10,31 L20,33 L30,28 L40,32 L50,30 L60,33 L70,26 L80,31 L90,32 L100,29 L110,31 L120,30" fill="none" stroke="#6CA8FF" stroke-width="1.4" vector-effect="non-scaling-stroke"></path></svg></div>
+<div class="core"><div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #A7B0BB;"><span>CPU 1</span><span class="tag tp">P</span></div><svg sc-camel-view-box="0 0 120 36" sc-camel-preserve-aspect-ratio="none" style="width: 100%; height: 34px;" aria-hidden="true"><path d="M0,33 L10,33 L20,30 L30,33 L40,31 L50,33 L60,32 L70,33 L80,29 L90,33 L100,32 L110,33 L120,31" fill="none" stroke="#6CA8FF" stroke-width="1.4" vector-effect="non-scaling-stroke"></path></svg></div>
+<div class="core"><div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #A7B0BB;"><span>CPU 2</span><span class="tag tp">P</span></div><svg sc-camel-view-box="0 0 120 36" sc-camel-preserve-aspect-ratio="none" style="width: 100%; height: 34px;" aria-hidden="true"><path d="M0,30 L10,27 L20,31 L30,24 L40,29 L50,31 L60,26 L70,30 L80,22 L90,28 L100,31 L110,27 L120,29" fill="none" stroke="#6CA8FF" stroke-width="1.4" vector-effect="non-scaling-stroke"></path></svg></div>
+<div class="core"><div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #A7B0BB;"><span>CPU 3</span><span class="tag tp">P</span></div><svg sc-camel-view-box="0 0 120 36" sc-camel-preserve-aspect-ratio="none" style="width: 100%; height: 34px;" aria-hidden="true"><path d="M0,34 L20,34 L30,32 L40,34 L60,33 L70,34 L90,31 L100,34 L120,33" fill="none" stroke="#6CA8FF" stroke-width="1.4" vector-effect="non-scaling-stroke"></path></svg></div>
+<div class="core"><div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #A7B0BB;"><span>CPU 4</span><span class="tag tp">P</span></div><svg sc-camel-view-box="0 0 120 36" sc-camel-preserve-aspect-ratio="none" style="width: 100%; height: 34px;" aria-hidden="true"><path d="M0,30 L10,27 L20,31 L30,24 L40,29 L50,31 L60,26 L70,30 L80,22 L90,28 L100,31 L110,27 L120,29" fill="none" stroke="#6CA8FF" stroke-width="1.4" vector-effect="non-scaling-stroke"></path></svg></div>
+<div class="core"><div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #A7B0BB;"><span>CPU 5</span><span class="tag tp">P</span></div><svg sc-camel-view-box="0 0 120 36" sc-camel-preserve-aspect-ratio="none" style="width: 100%; height: 34px;" aria-hidden="true"><path d="M0,34 L20,34 L30,32 L40,34 L60,33 L70,34 L90,31 L100,34 L120,33" fill="none" stroke="#6CA8FF" stroke-width="1.4" vector-effect="non-scaling-stroke"></path></svg></div>
+<div class="core"><div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #A7B0BB;"><span>CPU 6</span><span class="tag tp">P</span></div><svg sc-camel-view-box="0 0 120 36" sc-camel-preserve-aspect-ratio="none" style="width: 100%; height: 34px;" aria-hidden="true"><path d="M0,32 L10,31 L20,33 L30,28 L40,32 L50,30 L60,33 L70,26 L80,31 L90,32 L100,29 L110,31 L120,30" fill="none" stroke="#6CA8FF" stroke-width="1.4" vector-effect="non-scaling-stroke"></path></svg></div>
+<div class="core"><div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #A7B0BB;"><span>CPU 7</span><span class="tag tp">P</span></div><svg sc-camel-view-box="0 0 120 36" sc-camel-preserve-aspect-ratio="none" style="width: 100%; height: 34px;" aria-hidden="true"><path d="M0,33 L10,33 L20,30 L30,33 L40,31 L50,33 L60,32 L70,33 L80,29 L90,33 L100,32 L110,33 L120,31" fill="none" stroke="#6CA8FF" stroke-width="1.4" vector-effect="non-scaling-stroke"></path></svg></div>
+<div class="core"><div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #A7B0BB;"><span>CPU 8</span><span class="tag tp">P</span></div><svg sc-camel-view-box="0 0 120 36" sc-camel-preserve-aspect-ratio="none" style="width: 100%; height: 34px;" aria-hidden="true"><path d="M0,34 L20,34 L30,32 L40,34 L60,33 L70,34 L90,31 L100,34 L120,33" fill="none" stroke="#6CA8FF" stroke-width="1.4" vector-effect="non-scaling-stroke"></path></svg></div>
+<div class="core"><div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #A7B0BB;"><span>CPU 9</span><span class="tag tp">P</span></div><svg sc-camel-view-box="0 0 120 36" sc-camel-preserve-aspect-ratio="none" style="width: 100%; height: 34px;" aria-hidden="true"><path d="M0,30 L10,27 L20,31 L30,24 L40,29 L50,31 L60,26 L70,30 L80,22 L90,28 L100,31 L110,27 L120,29" fill="none" stroke="#6CA8FF" stroke-width="1.4" vector-effect="non-scaling-stroke"></path></svg></div>
+<div class="core"><div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #A7B0BB;"><span>CPU 10</span><span class="tag tp">P</span></div><svg sc-camel-view-box="0 0 120 36" sc-camel-preserve-aspect-ratio="none" style="width: 100%; height: 34px;" aria-hidden="true"><path d="M0,33 L10,33 L20,30 L30,33 L40,31 L50,33 L60,32 L70,33 L80,29 L90,33 L100,32 L110,33 L120,31" fill="none" stroke="#6CA8FF" stroke-width="1.4" vector-effect="non-scaling-stroke"></path></svg></div>
+<div class="core"><div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #A7B0BB;"><span>CPU 11</span><span class="tag tp">P</span></div><svg sc-camel-view-box="0 0 120 36" sc-camel-preserve-aspect-ratio="none" style="width: 100%; height: 34px;" aria-hidden="true"><path d="M0,32 L10,31 L20,33 L30,28 L40,32 L50,30 L60,33 L70,26 L80,31 L90,32 L100,29 L110,31 L120,30" fill="none" stroke="#6CA8FF" stroke-width="1.4" vector-effect="non-scaling-stroke"></path></svg></div>
+<div class="core"><div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #A7B0BB;"><span>CPU 12</span><span class="tag te">E</span></div><svg sc-camel-view-box="0 0 120 36" sc-camel-preserve-aspect-ratio="none" style="width: 100%; height: 34px;" aria-hidden="true"><path d="M0,34 L20,34 L30,32 L40,34 L60,33 L70,34 L90,31 L100,34 L120,33" fill="none" stroke="#8B95A1" stroke-width="1.4" vector-effect="non-scaling-stroke"></path></svg></div>
+<div class="core"><div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #A7B0BB;"><span>CPU 13</span><span class="tag te">E</span></div><svg sc-camel-view-box="0 0 120 36" sc-camel-preserve-aspect-ratio="none" style="width: 100%; height: 34px;" aria-hidden="true"><path d="M0,33 L10,33 L20,30 L30,33 L40,31 L50,33 L60,32 L70,33 L80,29 L90,33 L100,32 L110,33 L120,31" fill="none" stroke="#8B95A1" stroke-width="1.4" vector-effect="non-scaling-stroke"></path></svg></div>
+<div class="core"><div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #A7B0BB;"><span>CPU 14</span><span class="tag te">E</span></div><svg sc-camel-view-box="0 0 120 36" sc-camel-preserve-aspect-ratio="none" style="width: 100%; height: 34px;" aria-hidden="true"><path d="M0,30 L10,27 L20,31 L30,24 L40,29 L50,31 L60,26 L70,30 L80,22 L90,28 L100,31 L110,27 L120,29" fill="none" stroke="#8B95A1" stroke-width="1.4" vector-effect="non-scaling-stroke"></path></svg></div>
+<div class="core"><div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #A7B0BB;"><span>CPU 15</span><span class="tag te">E</span></div><svg sc-camel-view-box="0 0 120 36" sc-camel-preserve-aspect-ratio="none" style="width: 100%; height: 34px;" aria-hidden="true"><path d="M0,34 L20,34 L30,32 L40,34 L60,33 L70,34 L90,31 L100,34 L120,33" fill="none" stroke="#8B95A1" stroke-width="1.4" vector-effect="non-scaling-stroke"></path></svg></div>
+</div>
+</section>
+
+<section class="card" style="flex: 1 1 300px; min-width: 0; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px;">
+<div style="display: flex; justify-content: space-between; align-items: center;"><h2 style="margin: 0; font-size: 15px; font-weight: 600;">Top processes by CPU</h2><a href="Processes.dc.html" style="font-size: 12px; text-decoration: none;">All ›</a></div>
+<sc-raw-table class="tbl">
+<sc-raw-thead><sc-raw-tr><sc-raw-th>Process</sc-raw-th><sc-raw-th class="num" style="text-align: right;">PID</sc-raw-th><sc-raw-th class="num" style="text-align: right;">CPU</sc-raw-th></sc-raw-tr></sc-raw-thead>
+<sc-raw-tbody>
+<sc-raw-tr><sc-raw-td>brave.exe</sc-raw-td><sc-raw-td class="num mono" style="color: #A7B0BB;">11952</sc-raw-td><sc-raw-td class="num">0.4%</sc-raw-td></sc-raw-tr>
+<sc-raw-tr><sc-raw-td>MsMpEng.exe</sc-raw-td><sc-raw-td class="num mono" style="color: #A7B0BB;">5588</sc-raw-td><sc-raw-td class="num">0.3%</sc-raw-td></sc-raw-tr>
+<sc-raw-tr><sc-raw-td>explorer.exe</sc-raw-td><sc-raw-td class="num mono" style="color: #A7B0BB;">10908</sc-raw-td><sc-raw-td class="num">0.3%</sc-raw-td></sc-raw-tr>
+<sc-raw-tr><sc-raw-td>ProcessKiller.exe</sc-raw-td><sc-raw-td class="num mono" style="color: #A7B0BB;">6300</sc-raw-td><sc-raw-td class="num">0.3%</sc-raw-td></sc-raw-tr>
+<sc-raw-tr><sc-raw-td>brave.exe</sc-raw-td><sc-raw-td class="num mono" style="color: #A7B0BB;">1336</sc-raw-td><sc-raw-td class="num">0.2%</sc-raw-td></sc-raw-tr>
+<sc-raw-tr><sc-raw-td>Code.exe</sc-raw-td><sc-raw-td class="num mono" style="color: #A7B0BB;">12880</sc-raw-td><sc-raw-td class="num">0.2%</sc-raw-td></sc-raw-tr>
+</sc-raw-tbody>
+</sc-raw-table>
+</section>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:960}}">
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+
+
+</body></html>

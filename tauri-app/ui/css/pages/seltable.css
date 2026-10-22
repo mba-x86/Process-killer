@@ -1,0 +1,27 @@
+/* Shared by services / processes / startup pages. */
+.toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding-bottom: 4px; }
+.tcard { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 220px; overflow: hidden; }
+.tcard.fit { flex: 0 1 auto; }
+.tcard > .tbl-wrap { flex: 1; min-height: 0; }
+.sel-tbl th { padding: 0 12px; }
+.sel-tbl td { padding: 0 12px; height: 33px; user-select: none; }
+.sel-tbl td.path { color: var(--muted); }
+.sel-tbl tr.sel td { background: #1A1F27; }
+.sel-tbl tr.sel td:first-child { font-weight: 600; }
+.sel-tbl tr.sel td.path { color: var(--muted-2); }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-top: 2px; }
+.actions .vsep { width: 1px; height: 24px; background: var(--btn-line); margin: 0 6px; }
+.st-run, .st-stop, .st-pend { display: inline-flex; align-items: center; gap: 6px; }
+.st-run { color: var(--ok-text); } .st-run::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
+.st-stop { color: var(--muted); } .st-stop::before { content: ""; width: 6px; height: 6px; border-radius: 50%; box-sizing: border-box; border: 1.5px solid #4A525C; }
+.st-pend { color: var(--amber); } .st-pend::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--amber); }
+.mbar { display: flex; align-items: center; gap: 10px; }
+.mbar i { display: block; flex: 1; height: 5px; min-width: 60px; border-radius: 3px; background: var(--track); overflow: hidden; }
+.mbar b { display: block; height: 100%; border-radius: 3px; background: var(--teal); }
+.mbar span { width: 58px; text-align: right; font-variant-numeric: tabular-nums; }
+.sel-tbl tr.prot td { color: var(--muted); }
+.sel-tbl tr.prot td.path { color: #5A636E; }
+.lock { display: inline-block; vertical-align: -2px; margin-right: 6px; color: var(--muted); }
+.tk { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 11px; font-size: 12px; font-weight: 500; background: #16233A; color: var(--blue-lbl); }
+.tk.startup { background: #2A1B15; color: var(--accent-2); }
+.hint { color: var(--muted); }

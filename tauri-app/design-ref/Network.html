@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Process Killer — Network</title>
+<script src="3df3229c-ce5d-47e7-8a24-df78c9d7382d"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+
+<style>
+body{margin:0;background:#0D0F12}
+a{color:#A7B0BB}a:hover{color:#E8EBEF}
+.nav{display:flex;align-items:center;gap:12px;height:34px;padding:0 12px;border-radius:8px;color:#A7B0BB;text-decoration:none;font-size:13px;font-weight:500}
+.nav:hover{background:#13161B;color:#E8EBEF}
+.nav.on{background:#171B21;color:#E8EBEF;font-weight:600}
+.nav.on svg{color:#FF6B3D}
+.cat{padding:16px 12px 6px;font-size:11px;font-weight:600;letter-spacing:.08em;color:#7F8A96}
+.cat:first-child{padding-top:0}
+*{scrollbar-width:none}
+*::-webkit-scrollbar{display:none}
+.back{display:inline-flex;align-items:center;gap:6px;color:#A7B0BB;text-decoration:none;font-size:13px;font-weight:500}
+.back:hover{color:#E8EBEF}
+.card{background:#14171C;border:1px solid #1F242B;border-radius:12px}
+.lbl{font-size:11px;font-weight:600;letter-spacing:.07em;color:#7F8A96}
+.kv{margin:0;display:grid;grid-template-columns:minmax(0,1fr) auto;row-gap:11px;column-gap:16px;font-size:13px}
+.kv dt{color:#7F8A96}
+.kv dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
+.kv dd.na{color:#5A636E}
+.stat{flex:1 1 160px;min-width:0;background:#111418;border:1px solid #1F242B;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.nav:focus-visible,.back:focus-visible{outline:2px solid #FF6B3D;outline-offset:2px}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; align-items: stretch; background: #0D0F12; color: #E8EBEF; font-family: Geist, system-ui, sans-serif; font-size: 13px;">
+
+<aside aria-label="Main" style="flex: 1 1 220px; box-sizing: border-box; padding: 22px 12px 18px; background: #0A0C0F; border-right: 1px solid #1B1F25; display: flex; flex-direction: column; gap: 24px;">
+<div style="display: flex; align-items: center; gap: 12px; padding: 0 10px;">
+<svg width="30" height="30" sc-camel-view-box="0 0 28 28" fill="none" aria-hidden="true"><circle cx="14" cy="14" r="11" stroke="#FF6B3D" stroke-width="2.2" stroke-dasharray="14 3.3"></circle><path d="M9.5 9.5l9 9M18.5 9.5l-9 9" stroke="#E8EBEF" stroke-width="2.6" stroke-linecap="round"></path></svg>
+<span style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;">Process Killer</span>
+</div>
+<nav style="display: flex; flex-direction: column; gap: 2px;">
+<div class="cat">OVERVIEW</div>
+<a class="nav" href="Main.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"></rect><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"></rect><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"></rect><rect x="9" y="9" width="4.5" height="4.5" rx="1"></rect></svg>Dashboard</a>
+<div class="cat">PERFORMANCE</div>
+<a class="nav" href="Processor.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="8" height="8" rx="1.5"></rect><path d="M6.5 1.5v2M9.5 1.5v2M6.5 12.5v2M9.5 12.5v2M1.5 6.5h2M1.5 9.5h2M12.5 6.5h2M12.5 9.5h2"></path></svg>Processor</a>
+<a class="nav" href="Memory.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="1.5" y="4.5" width="13" height="6" rx="1"></rect><path d="M4.5 10.5v2M8 10.5v2M11.5 10.5v2"></path></svg>Memory</a>
+<a class="nav on" href="Network.dc.html" aria-current="page"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13V3M2.5 5.5 5 3l2.5 2.5M11 3v10M8.5 10.5 11 13l2.5-2.5"></path></svg>Network</a>
+<a class="nav" href="Graphics.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="1.5" y="4" width="13" height="8" rx="1.5"></rect><circle cx="10" cy="8" r="2"></circle><path d="M4 7h2.5M4 9h2.5"></path></svg>Graphics</a>
+<div class="cat">MANAGE</div>
+<a class="nav" href="Applications.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.8 13.5 4.8v6.4L8 14.2 2.5 11.2V4.8z"></path><path d="M2.5 4.8 8 7.8l5.5-3M8 7.8v6.4"></path></svg>Applications</a>
+<a class="nav" href="Services.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="2.2"></circle><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"></path></svg>Services</a>
+<a class="nav" href="Processes.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 8h3l2-5 3 10 2-5h3"></path></svg>Processes</a>
+<a class="nav" href="Startup.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 1.8v5.5"></path><path d="M4.6 4a5 5 0 1 0 6.8 0"></path></svg>Startup &amp; tasks</a>
+<div class="cat">CLEAN UP</div>
+<a class="nav" href="Optimizer.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M9 1.5 3.5 9H8l-1 5.5L12.5 7H8z"></path></svg>Optimizer</a>
+<a class="nav" href="Storage.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><rect x="1.8" y="9" width="12.4" height="4.5" rx="1"></rect><path d="M3 9 4.8 3h6.4L13 9"></path></svg>Storage analyzer</a>
+<div class="cat">APP</div>
+<a class="nav" href="Activity.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8M2.5 4h.01M2.5 8h.01M2.5 12h.01"></path></svg>Activity</a>
+<a class="nav" href="About.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="6.2"></circle><path d="M8 7.2v4M8 5h.01"></path></svg>About &amp; updates</a>
+</nav>
+<div style="margin-top: auto; padding: 0 12px; display: flex; flex-direction: column; gap: 4px; font-size: 12px;">
+<span style="display: inline-flex; align-items: center; gap: 8px; color: #5BD69A; font-weight: 500;"><span style="width: 7px; height: 7px; border-radius: 50%; background: #45C98A;"></span>Administrator</span>
+<span style="color: #7F8A96;">Version 1.0.3</span>
+<span style="color: #7F8A96;">© 2026 mba-x86</span>
+</div>
+</aside>
+
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 22px 28px 24px; display: flex; flex-direction: column; gap: 14px;">
+<a class="back" href="Main.dc.html"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 4-4 4 4 4"></path></svg>Dashboard</a>
+<header style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; padding-bottom: 4px;">
+<div style="display: flex; flex-direction: column; gap: 6px;"><h1 style="margin: 0; font-size: 26px; font-weight: 600; letter-spacing: -0.02em;">Network</h1><p style="margin: 0; color: #7F8A96;">[Adapter name] · [Ethernet / Wi-Fi]</p></div>
+
+</header>
+
+<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: stretch;">
+<section class="card" style="flex: 999 1 560px; min-width: 0; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px;">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 36px;">
+<div style="display: flex; flex-direction: column; gap: 4px;"><span class="lbl" style="display: inline-flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 3px; border-radius: 2px; background: #FF8A5C;"></span>DOWNLOAD</span><span style="font-size: 40px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums;">20.9 <span style="font-size: 18px; color: #7F8A96; letter-spacing: 0;">KB/s</span></span></div>
+<div style="display: flex; flex-direction: column; gap: 4px;"><span class="lbl" style="display: inline-flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 0; border-top: 2px dashed #A7B0BB;"></span>UPLOAD</span><span style="font-size: 40px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums;">11.7 <span style="font-size: 18px; color: #7F8A96; letter-spacing: 0;">KB/s</span></span></div>
+</div>
+<div style="display: flex; gap: 10px;">
+<div style="display: flex; flex-direction: column; justify-content: space-between; height: 240px; font-size: 11px; color: #7F8A96; text-align: right; width: 52px; flex: none;"><span>100 KB/s</span><span>50 KB/s</span><span>0</span></div>
+<svg sc-camel-view-box="0 0 600 200" sc-camel-preserve-aspect-ratio="none" style="flex: 1; min-width: 0; height: 240px;" aria-hidden="true"><path d="M0,0.5 L600,0.5 M0,50 L600,50 M0,100 L600,100 M0,150 L600,150 M0,199.5 L600,199.5" stroke="#1F242B" stroke-width="1" vector-effect="non-scaling-stroke"></path><path d="M0,190 L40,188 L60,120 L80,186 L140,190 L200,189 L240,150 L260,186 L320,188 L380,175 L400,188 L460,189 L500,140 L520,186 L560,184 L600,158 L600,200 L0,200 Z" fill="#FF8A5C" fill-opacity="0.12"></path><path d="M0,190 L40,188 L60,120 L80,186 L140,190 L200,189 L240,150 L260,186 L320,188 L380,175 L400,188 L460,189 L500,140 L520,186 L560,184 L600,158" fill="none" stroke="#FF8A5C" stroke-width="1.8" vector-effect="non-scaling-stroke"></path><path d="M0,195 L60,192 L80,170 L100,194 L240,194 L260,180 L280,195 L500,194 L520,176 L540,194 L600,177" fill="none" stroke="#A7B0BB" stroke-width="1.4" stroke-dasharray="5 4" vector-effect="non-scaling-stroke"></path></svg>
+</div>
+<div style="display: flex; justify-content: space-between; padding-left: 62px; font-size: 11px; color: #7F8A96;"><span>60 seconds ago</span><span>now</span></div>
+</section>
+
+<section class="card" style="flex: 1 1 300px; min-width: 0; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px;">
+<h2 style="margin: 0; font-size: 15px; font-weight: 600;">Adapter</h2>
+<dl class="kv">
+<dt>Name</dt><dd class="na">[Adapter name]</dd>
+<dt>Connection</dt><dd class="na">[Ethernet / Wi-Fi]</dd>
+<dt>Link speed</dt><dd class="na">[Mbps]</dd>
+<dt>IPv4 address</dt><dd class="na">[192.168.x.x]</dd>
+<dt>Gateway</dt><dd class="na">[192.168.x.1]</dd>
+<dt>DNS</dt><dd class="na">[DNS servers]</dd>
+<dt>MAC address</dt><dd class="na">[xx-xx-xx-xx-xx-xx]</dd>
+</dl>
+</section>
+</div>
+
+<section class="card" style="padding: 18px 20px; display: flex; flex-direction: column; gap: 14px;">
+<h2 style="margin: 0; font-size: 15px; font-weight: 600;">This session <span style="font-weight: 400; color: #7F8A96;">· since start-up 2h 7m ago</span></h2>
+<div style="display: flex; flex-wrap: wrap; gap: 10px;">
+<div class="stat"><span class="lbl">RECEIVED</span><span style="font-size: 20px; font-weight: 600; color: #5A636E;">[GB]</span></div>
+<div class="stat"><span class="lbl">SENT</span><span style="font-size: 20px; font-weight: 600; color: #5A636E;">[GB]</span></div>
+<div class="stat"><span class="lbl">PEAK DOWNLOAD</span><span style="font-size: 20px; font-weight: 600; color: #5A636E;">[MB/s]</span></div>
+<div class="stat"><span class="lbl">PEAK UPLOAD</span><span style="font-size: 20px; font-weight: 600; color: #5A636E;">[MB/s]</span></div>
+</div>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+
+
+</body></html>

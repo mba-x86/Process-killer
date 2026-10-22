@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Main window: call our own commands and receive events. No filesystem/shell/http plugins are enabled on purpose.",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}

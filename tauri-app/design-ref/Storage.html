@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Process Killer — Storage analyzer</title>
+<script src="d764fbc8-60d6-4cce-b54d-a8e64ba1341c"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+
+<style>
+body{margin:0;background:#0D0F12}
+a{color:#A7B0BB}a:hover{color:#E8EBEF}
+.nav{display:flex;align-items:center;gap:12px;height:38px;padding:0 12px;border-radius:8px;color:#A7B0BB;text-decoration:none;font-size:13px;font-weight:500}
+.nav:hover{background:#13161B;color:#E8EBEF}
+.nav.on{background:#171B21;color:#E8EBEF;font-weight:600}
+.nav.on svg{color:#FF6B3D}
+.btn{height:34px;padding:0 14px;border-radius:8px;border:1px solid #2A3038;background:#171B21;color:#E8EBEF;display:inline-flex;align-items:center;gap:8px;font:500 13px Geist,system-ui,sans-serif;white-space:nowrap;cursor:pointer;text-decoration:none;box-sizing:border-box}
+.btn:hover{background:#1E232A;color:#E8EBEF}
+.btn-d{background:#2A1416;color:#FF8A8A;border-color:#5A2427}
+.btn-d:hover{background:#341719;color:#FF9C9C}
+.field{height:34px;box-sizing:border-box;border:1px solid #2A3038;background:#111418;border-radius:8px;color:#E8EBEF;font:13px Geist,system-ui,sans-serif;padding:0 10px}
+.field::placeholder{color:#7F8A96}
+.card{background:#14171C;border:1px solid #1F242B;border-radius:12px}
+.seg{display:inline-flex;padding:2px;gap:2px;background:#111418;border:1px solid #2A3038;border-radius:8px}
+.seg button{height:28px;padding:0 18px;border:0;border-radius:6px;background:transparent;color:#A7B0BB;font:500 13px Geist,system-ui,sans-serif;cursor:pointer}
+.seg button[aria-pressed="true"]{background:#E8EBEF;color:#0D0F12}
+.drive{flex:0 1 230px;min-width:0;text-align:left;background:#14171C;border:1px solid #1F242B;border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;cursor:pointer;color:#E8EBEF;font:13px Geist,system-ui,sans-serif}
+.drive:hover{border-color:#2A3038}
+.drive[aria-pressed="true"]{border-color:#8DBBFF;background:#151B25}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{position:sticky;top:0;z-index:1;background:#14171C;text-align:left;font-weight:500;font-size:12px;color:#7F8A96;padding:0 12px;height:36px;border-bottom:1px solid #242931;white-space:nowrap}
+.tbl td{padding:0 12px;height:36px;border-bottom:1px solid #1A1E24;white-space:nowrap;color:#E8EBEF}
+.tbl tbody tr:hover td{background:#171A20}
+.tbl tr.sel td{background:#1A2230}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.mono{font-family:"Geist Mono",ui-monospace,monospace;font-size:12px}
+.lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.btn:focus-visible,.nav:focus-visible,.field:focus-visible,.drive:focus-visible,.seg button:focus-visible{outline:2px solid #FF6B3D;outline-offset:2px}
+.nav{height:34px}
+.cat{padding:16px 12px 6px;font-size:11px;font-weight:600;letter-spacing:.08em;color:#7F8A96}
+.cat:first-child{padding-top:0}
+*{scrollbar-width:none}
+*::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; align-items: stretch; background: #0D0F12; color: #E8EBEF; font-family: Geist, system-ui, sans-serif; font-size: 13px;">
+
+<aside aria-label="Main" style="flex: 1 1 220px; box-sizing: border-box; padding: 22px 12px 18px; background: #0A0C0F; border-right: 1px solid #1B1F25; display: flex; flex-direction: column; gap: 24px;">
+<div style="display: flex; align-items: center; gap: 12px; padding: 0 10px;">
+<svg width="30" height="30" sc-camel-view-box="0 0 28 28" fill="none" aria-hidden="true"><circle cx="14" cy="14" r="11" stroke="#FF6B3D" stroke-width="2.2" stroke-dasharray="14 3.3"></circle><path d="M9.5 9.5l9 9M18.5 9.5l-9 9" stroke="#E8EBEF" stroke-width="2.6" stroke-linecap="round"></path></svg>
+<span style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;">Process Killer</span>
+</div>
+<nav style="display: flex; flex-direction: column; gap: 2px;">
+<div class="cat">OVERVIEW</div>
+<a class="nav" href="Main.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"></rect><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"></rect><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"></rect><rect x="9" y="9" width="4.5" height="4.5" rx="1"></rect></svg>Dashboard</a>
+<div class="cat">PERFORMANCE</div>
+<a class="nav" href="Processor.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="8" height="8" rx="1.5"></rect><path d="M6.5 1.5v2M9.5 1.5v2M6.5 12.5v2M9.5 12.5v2M1.5 6.5h2M1.5 9.5h2M12.5 6.5h2M12.5 9.5h2"></path></svg>Processor</a>
+<a class="nav" href="Memory.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="1.5" y="4.5" width="13" height="6" rx="1"></rect><path d="M4.5 10.5v2M8 10.5v2M11.5 10.5v2"></path></svg>Memory</a>
+<a class="nav" href="Network.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13V3M2.5 5.5 5 3l2.5 2.5M11 3v10M8.5 10.5 11 13l2.5-2.5"></path></svg>Network</a>
+<a class="nav" href="Graphics.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="1.5" y="4" width="13" height="8" rx="1.5"></rect><circle cx="10" cy="8" r="2"></circle><path d="M4 7h2.5M4 9h2.5"></path></svg>Graphics</a>
+<div class="cat">MANAGE</div>
+<a class="nav" href="Applications.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.8 13.5 4.8v6.4L8 14.2 2.5 11.2V4.8z"></path><path d="M2.5 4.8 8 7.8l5.5-3M8 7.8v6.4"></path></svg>Applications</a>
+<a class="nav" href="Services.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="2.2"></circle><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"></path></svg>Services</a>
+<a class="nav" href="Processes.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 8h3l2-5 3 10 2-5h3"></path></svg>Processes</a>
+<a class="nav" href="Startup.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 1.8v5.5"></path><path d="M4.6 4a5 5 0 1 0 6.8 0"></path></svg>Startup &amp; tasks</a>
+<div class="cat">CLEAN UP</div>
+<a class="nav" href="Optimizer.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M9 1.5 3.5 9H8l-1 5.5L12.5 7H8z"></path></svg>Optimizer</a>
+<a class="nav on" href="Storage.dc.html" aria-current="page"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><rect x="1.8" y="9" width="12.4" height="4.5" rx="1"></rect><path d="M3 9 4.8 3h6.4L13 9"></path></svg>Storage analyzer</a>
+<div class="cat">APP</div>
+<a class="nav" href="Activity.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8M2.5 4h.01M2.5 8h.01M2.5 12h.01"></path></svg>Activity</a>
+<a class="nav" href="About.dc.html"><svg width="16" height="16" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="6.2"></circle><path d="M8 7.2v4M8 5h.01"></path></svg>About &amp; updates</a>
+</nav>
+<div style="margin-top: auto; padding: 0 12px; display: flex; flex-direction: column; gap: 4px; font-size: 12px;">
+<span style="display: inline-flex; align-items: center; gap: 8px; color: #5BD69A; font-weight: 500;"><span style="width: 7px; height: 7px; border-radius: 50%; background: #45C98A;"></span>Administrator</span>
+<span style="color: #7F8A96;">Version 1.0.3</span>
+<span style="color: #7F8A96;">© 2026 mba-x86</span>
+</div>
+</aside>
+
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px 28px 24px; display: flex; flex-direction: column; gap: 14px;">
+<header style="display: flex; flex-direction: column; gap: 6px; padding-bottom: 4px;"><h1 style="margin: 0; font-size: 26px; font-weight: 600; letter-spacing: -0.02em;">Storage analyzer</h1><p style="margin: 0; color: #7F8A96;">Find the heaviest files and folders on any partition</p></header>
+
+<div role="group" aria-label="Partitions" style="display: flex; flex-wrap: wrap; gap: 12px;">
+<button class="drive" type="button" aria-pressed="true"><span style="font-size: 14px; font-weight: 600;">All partitions</span><span style="font-size: 12px; color: #A7B0BB;">2 drives · 181.7 GB free of 714.4 GB</span><span style="display: block; height: 6px; border-radius: 3px; background: #232830; overflow: hidden;"><span style="display: block; width: 75%; height: 100%; border-radius: 3px; background: #F4B740;"></span></span></button>
+<button class="drive" type="button" aria-pressed="false"><span style="font-size: 14px; font-weight: 600;">C:\ <span style="font-weight: 500;">Local disk</span></span><span style="font-size: 12px; color: #A7B0BB;">NTFS · 113.6 GB free of 475.9 GB</span><span style="display: block; height: 6px; border-radius: 3px; background: #232830; overflow: hidden;"><span style="display: block; width: 76%; height: 100%; border-radius: 3px; background: #F4B740;"></span></span></button>
+<button class="drive" type="button" aria-pressed="false"><span style="font-size: 14px; font-weight: 600;">E:\ <span style="font-weight: 500;">New Volume</span></span><span style="font-size: 12px; color: #A7B0BB;">NTFS · 68.0 GB free of 238.5 GB</span><span style="display: block; height: 6px; border-radius: 3px; background: #232830; overflow: hidden;"><span style="display: block; width: 71%; height: 100%; border-radius: 3px; background: #F4B740;"></span></span></button>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px;">
+<label for="spart" style="color: #A7B0BB; margin-right: 2px;">Partition</label>
+<sc-raw-select id="spart" class="field" style="width: 240px;"><option>All partitions</option><option>C:\ Local disk</option><option>E:\ New Volume</option></sc-raw-select>
+<button class="btn btn-d" type="button"><svg width="11" height="11" sc-camel-view-box="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="3" y="3" width="10" height="10" rx="1.5"></rect></svg>Stop</button>
+<button class="btn" type="button"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M1.8 4.2a1 1 0 0 1 1-1h3.2l1.5 1.6h5.7a1 1 0 0 1 1 1v6.9a1 1 0 0 1-1 1H2.8a1 1 0 0 1-1-1z"></path></svg>Choose folder…</button>
+
+<span style="color: #7F8A96; margin-left: 6px;">Scope: all partitions</span>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px;">
+<label for="stype" class="lbl">Type</label>
+<sc-raw-select id="stype" class="field" style="width: 130px;"><option>All types</option><option>Programs</option><option>Video</option><option>Archives</option></sc-raw-select>
+<label for="ssize" class="lbl">Minimum size</label>
+<sc-raw-select id="ssize" class="field" style="width: 110px;"><option>≥ 10 MB</option><option>≥ 100 MB</option><option>≥ 1 GB</option></sc-raw-select>
+<label for="sfilter" class="lbl">Filter</label>
+<input id="sfilter" class="field" type="search" placeholder="Filter by name or path…" style="width: 230px;">
+</div>
+<div class="seg" role="group" aria-label="Show"><button type="button" aria-pressed="true">Files</button><button type="button" aria-pressed="false">Folders</button></div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px;">
+<div style="height: 6px; border-radius: 3px; background: #1F242B; overflow: hidden;"><div style="width: 22%; height: 100%; margin-left: 30%; border-radius: 3px; background: #6CA8FF;"></div></div>
+<span style="font-size: 12px; color: #7F8A96;">37 files · 18.3 GB scanned · <span class="mono" style="color: #A7B0BB;">C:\Windows\WinSxS</span></span>
+</div>
+
+<div class="card" style="flex: 1; min-height: 260px; overflow: auto;">
+<sc-raw-table class="tbl">
+<sc-raw-thead><sc-raw-tr><sc-raw-th style="width: 22%;">Size ↓</sc-raw-th><sc-raw-th>Name</sc-raw-th><sc-raw-th>Folder</sc-raw-th><sc-raw-th>Type</sc-raw-th><sc-raw-th>Modified</sc-raw-th></sc-raw-tr></sc-raw-thead>
+<sc-raw-tbody>
+<sc-raw-tr><sc-raw-td><div style="display: flex; align-items: center; gap: 10px;"><span class="num" style="width: 64px; font-weight: 500;">11.5 GB</span><div style="flex: 1; height: 5px; border-radius: 3px; background: #232830;"><div style="width: 100%; height: 100%; border-radius: 3px; background: #F4B740;"></div></div></div></sc-raw-td><sc-raw-td><span style="display: inline-flex; align-items: center; gap: 8px;"><svg width="13" height="13" sc-camel-view-box="0 0 16 16" fill="none" stroke="#7F8A96" stroke-width="1.7" role="img" aria-label="Protected system file"><rect x="3.5" y="7" width="9" height="6.5" rx="1.2"></rect><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"></path></svg>pagefile.sys</span></sc-raw-td><sc-raw-td class="mono" style="color: #A7B0BB;">C:\</sc-raw-td><sc-raw-td style="color: #A7B0BB;">System</sc-raw-td><sc-raw-td style="color: #A7B0BB;">2026-10-21</sc-raw-td></sc-raw-tr>
+<sc-raw-tr><sc-raw-td><div style="display: flex; align-items: center; gap: 10px;"><span class="num" style="width: 64px; font-weight: 500;">6.3 GB</span><div style="flex: 1; height: 5px; border-radius: 3px; background: #232830;"><div style="width: 55%; height: 100%; border-radius: 3px; background: #F4B740;"></div></div></div></sc-raw-td><sc-raw-td><span style="display: inline-flex; align-items: center; gap: 8px;"><svg width="13" height="13" sc-camel-view-box="0 0 16 16" fill="none" stroke="#7F8A96" stroke-width="1.7" role="img" aria-label="Protected system file"><rect x="3.5" y="7" width="9" height="6.5" rx="1.2"></rect><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"></path></svg>hiberfil.sys</span></sc-raw-td><sc-raw-td class="mono" style="color: #A7B0BB;">C:\</sc-raw-td><sc-raw-td style="color: #A7B0BB;">System</sc-raw-td><sc-raw-td style="color: #A7B0BB;">2026-10-21</sc-raw-td></sc-raw-tr>
+<sc-raw-tr class="sel" aria-selected="true"><sc-raw-td><div style="display: flex; align-items: center; gap: 10px;"><span class="num" style="width: 64px; font-weight: 500;">256.0 MB</span><div style="flex: 1; height: 5px; border-radius: 3px; background: #232830;"><div style="width: 3%; height: 100%; border-radius: 3px; background: #F4B740;"></div></div></div></sc-raw-td><sc-raw-td style="font-weight: 600;">392667600.dat</sc-raw-td><sc-raw-td class="mono">C:\Windows</sc-raw-td><sc-raw-td>Other</sc-raw-td><sc-raw-td>2026-10-21</sc-raw-td></sc-raw-tr>
+<sc-raw-tr><sc-raw-td><div style="display: flex; align-items: center; gap: 10px;"><span class="num" style="width: 64px; font-weight: 500;">256.0 MB</span><div style="flex: 1; height: 5px; border-radius: 3px; background: #232830;"><div style="width: 3%; height: 100%; border-radius: 3px; background: #F4B740;"></div></div></div></sc-raw-td><sc-raw-td><span style="display: inline-flex; align-items: center; gap: 8px;"><svg width="13" height="13" sc-camel-view-box="0 0 16 16" fill="none" stroke="#7F8A96" stroke-width="1.7" role="img" aria-label="Protected system file"><rect x="3.5" y="7" width="9" height="6.5" rx="1.2"></rect><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"></path></svg>swapfile.sys</span></sc-raw-td><sc-raw-td class="mono" style="color: #A7B0BB;">C:\</sc-raw-td><sc-raw-td style="color: #A7B0BB;">System</sc-raw-td><sc-raw-td style="color: #A7B0BB;">2026-10-21</sc-raw-td></sc-raw-tr>
+</sc-raw-tbody>
+</sc-raw-table>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px;">
+<button class="btn" type="button"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M1.8 4.2a1 1 0 0 1 1-1h3.2l1.5 1.6h5.7a1 1 0 0 1 1 1v6.9a1 1 0 0 1-1 1H2.8a1 1 0 0 1-1-1z"></path></svg>Open location</button>
+<button class="btn" type="button"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="5" y="5" width="8.5" height="8.5" rx="1.2"></rect><path d="M3 10.5V3.5a1 1 0 0 1 1-1h6.5"></path></svg>Copy path</button>
+<button class="btn btn-d" type="button"><svg width="14" height="14" sc-camel-view-box="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M2.5 4h11M6 4V2.5h4V4M4 4l.7 9.5h6.6L12 4"></path></svg>Move to Recycle Bin</button>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+
+
+</body></html>
