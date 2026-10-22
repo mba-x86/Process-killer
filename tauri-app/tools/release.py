@@ -112,7 +112,10 @@ def main():
     print(f"\nexe      : {os.path.getsize(exe) / 1048576:.1f} MB\ninstaller: {setup} ({len(data) / 1048576:.1f} MB)\nsha256   : {manifest['sha256']}")
     if a.publish:
         files = [setup, os.path.join(DIST, "latest.json")] + ([setup + ".minisig"] if a.sign else [])
-        sh([gh, "release", "create", f"v{v}", *files, "--repo", SLUG, "--title", f"Process Killer {v}", "--notes", notes or f"Version {v}", "--prerelease"])
+        branch = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True, cwd=REPO).stdout.strip() or "main"
+        print(f"tagging v{v} on branch '{branch}' (it must already be pushed: git push origin {branch})")
+        sh([gh, "release", "create", f"v{v}", *files, "--repo", SLUG, "--target", branch, "--title", f"Process Killer {v}",
+            "--notes", notes or f"Version {v}", "--prerelease"])
         print(f"Published v{v} as a PRE-RELEASE (installed apps do not see it). Test it, then: py tauri-app/tools/release.py --promote")
 
 
