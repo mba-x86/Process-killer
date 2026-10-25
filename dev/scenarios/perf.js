@@ -103,4 +103,18 @@ export default [
       T.assert(T.$('.nav[data-route="performance"]').classList.contains('on'), 'sidebar shows Performance');
     });
   } },
+
+  { name: 'performance: Processor stats stay plain text on one line even after Memory/Network styles were loaded', async run(T) {
+    await T.open('performance/memory');
+    await T.waitText('#page', /IN USE\s*\d/, { timeout: 8000 });
+    await T.click(T.byText('Processor', { root: T.$('.ptabs'), tags: 'button' }));
+    await T.waitText('#page', 'UPTIME', { timeout: 8000 });
+    const stats = T.$$('#page .pstat, #page .stat');
+    T.eq(stats.length, 3, 'three stats');
+    for (const el of stats) {
+      const cs = T.win.getComputedStyle(el), v = el.querySelector('b');
+      T.eq(cs.borderTopWidth, '0px', 'no box leaked from the Memory/Network stylesheet');
+      T.assert(v.getBoundingClientRect().height < 30, `value wraps onto several lines (${T.text(el)})`);
+    }
+  } },
 ];

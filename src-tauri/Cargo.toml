@@ -1,6 +1,6 @@
 [package]
 name = "process-killer"
-version = "2.1.1"
+version = "2.1.2"
 description = "Task Reaper - find, stop, uninstall and clean up software on Windows"
 authors = ["mba-x86"]
 license = "MIT"

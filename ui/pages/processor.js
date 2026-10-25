@@ -17,7 +17,7 @@ export default async function (ctx) {
   const chart = charts.lineChart({ height: 220, color: 'var(--blue)', yMax: 100, grid: [100, 75, 50, 25, 0].map((v) => v), fmt: (v) => (v % 50 === 0 ? `${v}%` : '') });
   const bigPct = h('span', { class: 'huge tnum', style: { letterSpacing: '-.03em' } }, '–');
   const speed = h('b', {}, '–'), procs = h('b', {}, detail.process_count != null ? fmt.num(detail.process_count) : '–'), up = h('b', {}, '–');
-  const stat = (l, el) => h('div', { class: 'stat' }, h('span', { class: 'lbl' }, l), el);
+  const stat = (l, el) => h('div', { class: 'pstat' }, h('span', { class: 'lbl' }, l), el);
   const utilCard = ui.card({ style: { flex: '999 1 560px', minWidth: 0, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: '14px' } },
     h('div', { class: 'row between wrap', style: { alignItems: 'flex-end', gap: '16px' } },
       h('div', { class: 'col', style: { gap: '4px' } }, h('span', { class: 'lbl' }, 'UTILIZATION'), bigPct),
