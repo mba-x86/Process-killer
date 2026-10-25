@@ -65,7 +65,7 @@ function makeT(rec) {
     async nav(route, { wait = true } = {}) {
       win().location.hash = `#/${route}`;
       if (wait) {
-        await T.waitFor(() => doc().querySelector(`.nav[data-route="${route}"]`)?.classList.contains('on'), { msg: `nav to ${route}` });
+        await T.waitFor(() => doc().querySelector(`.nav[data-route="${route.split('/')[0]}"]`)?.classList.contains('on'), { msg: `nav to ${route}` });
         await T.waitFor(() => doc().querySelector('#page h1'), { timeout: 15000, msg: `h1 on ${route}` });
         await sleep(30);
       }

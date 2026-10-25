@@ -1,4 +1,4 @@
-const ROUTES = ['dashboard', 'processor', 'memory', 'network', 'graphics', 'applications', 'services', 'processes', 'startup', 'optimizer', 'storage', 'activity', 'about'];
+const ROUTES = ['dashboard', 'performance/processor', 'performance/memory', 'performance/network', 'performance/graphics', 'applications', 'services', 'processes', 'startup', 'optimizer', 'storage', 'activity', 'about'];
 const XSS = '<img src=x onerror=alert(1)>';
 const KEYS = /name|display|publisher|title|path|command|message|desc|detail|label|current|manufacturer|model|ssid|vendor|driver|exe|location|text|notes|part_number|slot|hostname|os$/i;
 
@@ -77,7 +77,7 @@ export default [
   { name: 'keyboard: nav + primary buttons focusable with visible focus; Escape closes modals', async run(T) {
     await T.open('dashboard');
     await T.step('nav links', async () => {
-      const links = T.$$('a.nav'); T.eq(links.length, 13);
+      const links = T.$$('a.nav'); T.eq(links.length, 10);
       T.assert(links.every((a) => a.tabIndex >= 0 && a.getAttribute('href')), 'nav links must be tabbable anchors');
       links[3].focus(); T.eq(T.doc.activeElement, links[3], 'focus() works');
       T.assert(T.win.getComputedStyle(links[3]).outlineStyle !== 'none', 'focus outline visible on nav');

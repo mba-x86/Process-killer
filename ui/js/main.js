@@ -76,8 +76,10 @@ function sidebar() {
 }
 
 /* ---------------- router ---------------- */
+const LEGACY_PERF = new Set(['processor', 'memory', 'network', 'graphics']);
 function routeFromHash() {
-  const id = location.hash.replace(/^#\//, '').split(/[/?]/)[0] || 'dashboard';
+  let id = location.hash.replace(/^#\//, '').split(/[/?]/)[0] || 'dashboard';
+  if (LEGACY_PERF.has(id)) id = 'performance';        // old links (#/memory ...) open the matching Performance tab
   return ROUTES.find((r) => r.id === id) || ROUTES[0];
 }
 

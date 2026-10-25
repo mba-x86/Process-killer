@@ -6,7 +6,7 @@ import { h, setText } from '../js/dom.js';
 export function perfHead(ctx, { title, sub, extra }) {
   const dot = h('span', { class: 'dot live-dot' }), txt = h('span', {}, 'Live');
   const pill = ctx.ui.pill(dot, txt);
-  const head = ctx.ui.pageHead({ title, sub, back: { to: 'dashboard', label: 'Dashboard' },
+  const head = ctx.ui.pageHead({ title, sub, back: ctx.embedded ? null : { to: 'dashboard', label: 'Dashboard' },
     right: h('div', { class: 'row', style: { '--g': '10px', alignSelf: 'flex-end' } }, pill, extra || null) });
   head.setPill = (text, live = true) => { setText(txt, text); dot.className = live ? 'dot live-dot' : 'dot off'; };
   return head;

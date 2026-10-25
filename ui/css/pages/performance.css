@@ -1,0 +1,11 @@
+/* Performance: tabbed container for Processor / Memory / Network / Graphics */
+.ptabs { position: relative; display: flex; gap: 4px; border-bottom: 1px solid var(--card-line); margin-bottom: 4px; flex: none; }
+.ptab { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border: 0; background: transparent; color: var(--muted-2); font: 500 13px var(--font); cursor: pointer; border-radius: 8px 8px 0 0; transition: color .18s, background-color .18s; }
+.ptab:hover { color: var(--text); background: #151A21; }
+.ptab.on { color: var(--text); }
+.ptab:focus-visible { outline: 2px solid var(--blue-lbl); outline-offset: -2px; }
+/* sliding underline: transform + width only */
+.ptab-mark { position: absolute; left: 0; bottom: -1px; height: 2px; width: 0; border-radius: 2px; background: var(--accent-2); transition: transform .28s cubic-bezier(.3, .8, .3, 1), width .28s cubic-bezier(.3, .8, .3, 1); pointer-events: none; }
+/* the tab content is a normal page column; it fades in when a tab is switched */
+.ptab-body { display: flex; flex-direction: column; gap: 12px; }
+.ptab-body.swap { animation: pop .24s ease-out; }

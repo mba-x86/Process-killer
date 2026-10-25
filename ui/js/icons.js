@@ -4,7 +4,8 @@ import { h } from './dom.js';
 
 const I = {
   dashboard: '<rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"/><rect x="9" y="9" width="4.5" height="4.5" rx="1"/>',
-  processor: '<rect x="4" y="4" width="8" height="8" rx="1.5"/><path d="M6.5 1.5v2M9.5 1.5v2M6.5 12.5v2M9.5 12.5v2M1.5 6.5h2M1.5 9.5h2M12.5 6.5h2M12.5 9.5h2"/>',
+  performance: '<path d="M2 11.5a6 6 0 1 1 12 0"/><path d="M8 11.5 10.8 7"/><circle cx="8" cy="11.5" r=".9" fill="currentColor"/>',
+  processor:'<rect x="4" y="4" width="8" height="8" rx="1.5"/><path d="M6.5 1.5v2M9.5 1.5v2M6.5 12.5v2M9.5 12.5v2M1.5 6.5h2M1.5 9.5h2M12.5 6.5h2M12.5 9.5h2"/>',
   memory: '<rect x="1.5" y="4.5" width="13" height="6" rx="1"/><path d="M4.5 10.5v2M8 10.5v2M11.5 10.5v2"/>',
   network: '<path d="M5 13V3M2.5 5.5 5 3l2.5 2.5M11 3v10M8.5 10.5 11 13l2.5-2.5"/>',
   graphics: '<rect x="1.5" y="4" width="13" height="8" rx="1.5"/><circle cx="10" cy="8" r="2"/><path d="M4 7h2.5M4 9h2.5"/>',

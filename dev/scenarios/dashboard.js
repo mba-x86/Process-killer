@@ -36,7 +36,7 @@ export default [
   } },
 
   { name: 'card links and quick actions navigate', async run(T) {
-    for (const [href, title] of [['processor', 'Processor'], ['memory', 'Memory'], ['storage', 'Storage analyzer'], ['network', 'Network']]) {
+    for (const [href, title] of [['performance/processor', 'Processor'], ['performance/memory', 'Memory'], ['storage', 'Storage analyzer'], ['performance/network', 'Network']]) {
       await T.step(`card -> ${href}`, async () => {
         await T.open('dashboard');
         await T.click(`a.card-link[href="#/${href}"]`);

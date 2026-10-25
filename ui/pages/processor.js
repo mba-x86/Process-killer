@@ -10,7 +10,7 @@ export default async function (ctx) {
   /* ---------- header ---------- */
   const pill = ui.pill(ui.dot('ok'), 'Live · every 1.5 s');
   pill.style.height = '28px'; pill.style.alignSelf = 'flex-end'; pill.style.borderRadius = '14px';
-  const head = ui.pageHead({ title: 'Processor', sub: [detail.model, detail.socket && `socket ${detail.socket}`].filter(Boolean).join(' · '), back: { to: 'dashboard', label: 'Dashboard' }, right: pill });
+  const head = ui.pageHead({ title: 'Processor', sub: [detail.model, detail.socket && `socket ${detail.socket}`].filter(Boolean).join(' · '), back: ctx.embedded ? null : { to: 'dashboard', label: 'Dashboard' }, right: pill });
 
   /* ---------- utilisation ---------- */
   const histAll = charts.history(60);

@@ -65,10 +65,10 @@ export default async function (ctx) {
   netUp.className = 'muted tnum';
   const netHist = charts.history(60), netSpark = charts.sparkline({ w: 200, h: 36, color: 'var(--accent-2)', max: 1024 });
   const cards = h('section', { class: 'grid-auto', 'aria-label': 'Live usage', style: { '--min': '230px' } },
-    cardShell('PROCESSOR', 'processor', 'Open processor details', h('div', { class: 'row', style: { gap: '18px' } }, cpuRing, stack(cpuBig, cpuSub))),
-    cardShell('MEMORY', 'memory', 'Open memory details', h('div', { class: 'row', style: { gap: '18px' } }, memRing, stack(memBig, memOf, memFree))),
+    cardShell('PROCESSOR', 'performance/processor', 'Open processor details', h('div', { class: 'row', style: { gap: '18px' } }, cpuRing, stack(cpuBig, cpuSub))),
+    cardShell('MEMORY', 'performance/memory', 'Open memory details', h('div', { class: 'row', style: { gap: '18px' } }, memRing, stack(memBig, memOf, memFree))),
     cardShell(dskLbl, 'storage', 'Open storage analyzer', h('div', { class: 'row', style: { gap: '18px' } }, dskRing, stack(dskBig, dskSub))),
-    cardShell('NETWORK', 'network', 'Open network details', stack(h('span', { class: 'big tnum' }, arrowDown, ' ', netDown), netUp), netSpark));
+    cardShell('NETWORK', 'performance/network', 'Open network details', stack(h('span', { class: 'big tnum' }, arrowDown, ' ', netDown), netUp), netSpark));
 
   function paintLive(l) {
     st.live = l;
