@@ -103,4 +103,14 @@ export default [
       await T.key('Escape');
     });
   } },
+
+  { name: 'toasts never cover or block buttons: top of the content area, click-through', async run(T) {
+    await T.open('dashboard');
+    await T.clickText('Boost RAM');
+    const t = await T.waitToast(/RAM boosted|Boost/i);
+    const r = t.getBoundingClientRect(), cs = T.win.getComputedStyle(t);
+    T.assert(r.top < 80, `toast should sit at the top, top=${r.top}`);
+    T.eq(cs.pointerEvents, 'none', 'toast must not intercept clicks');
+    T.assert(r.left > 220, 'toast stays inside the content area (right of the sidebar)');
+  } },
 ];

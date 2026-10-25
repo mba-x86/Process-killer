@@ -2324,7 +2324,7 @@ dependencies = [
 
 [[package]]
 name = "process-killer"
-version = "2.1.2"
+version = "2.1.3"
 dependencies = [
  "minisign-verify",
  "serde",
