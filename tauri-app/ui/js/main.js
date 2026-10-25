@@ -71,7 +71,7 @@ function sidebar() {
         actions: [{ label: 'Restart as Administrator', kind: 'primary', onClick: () => api.invoke('relaunch_as_admin').catch((e) => ui.toast(e.message, 'bad')) }] });
     }
   }).catch(() => {});
-  return h('aside', { class: 'sidebar', 'aria-label': 'Main' }, h('div', { class: 'brand' }, logo(30), 'Process Killer'),
+  return h('aside', { class: 'sidebar', 'aria-label': 'Main' }, h('div', { class: 'brand' }, logo(30), 'Task Reaper'),
     h('nav', { class: 'col', style: { '--g': '0' } }, groups), h('div', { class: 'side-foot' }, who, ver, h('span', {}, '© 2026 mba-x86')));
 }
 
@@ -87,7 +87,7 @@ async function show() {
   cleanups = [];
   current?.destroy?.(); current = null;
   navEls.forEach((el, id) => { el.classList.toggle('on', id === route.id); el.toggleAttribute('aria-current', id === route.id); });
-  document.title = `${route.label} — Process Killer`;
+  document.title = `${route.label} — Task Reaper`;
   try {
     const mod = await route.load();
     if (my !== token) return;                           // navigated away while loading

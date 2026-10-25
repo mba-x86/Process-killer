@@ -1,5 +1,5 @@
 # Copyright (c) 2026 mba-x86. Released under the MIT License (see LICENSE).
-"""Build the Process Killer 2.x installer + update manifest.
+"""Build the Task Reaper (formerly Process Killer) installer + update manifest.
 
     py tauri-app/tools/release.py                      build exe + installer + dist/latest.json
     py tauri-app/tools/release.py --notes "Fixed X"    release notes shown in the update banner
@@ -44,7 +44,7 @@ def find(*names):
 
 def make_wizard_images():
     from PIL import Image
-    logo = Image.open(os.path.join(REPO, "assets", "Process Killer Logo.png")).convert("RGBA")
+    logo = Image.open(os.path.join(INST, "logo_256.png")).convert("RGBA")      # rendered by tools/make_icons.py from ui/js/icons.js
     for name, size in (("wizard_small.bmp", (55, 55)), ("wizard_large.bmp", (164, 314))):
         canvas = Image.new("RGB", size, (255, 255, 255))
         w, h = size
@@ -93,7 +93,7 @@ def main():
     webview2_bootstrapper()
     iscc = find(os.path.expandvars(r"%LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe"), r"C:\Program Files (x86)\Inno Setup 6\ISCC.exe", "iscc")
     sh([iscc, f"/DAppVersion={v}", f"/DSourceDir={os.path.dirname(exe)}", f"/DOutDir={DIST}", os.path.join(INST, "ProcessKiller.iss")])
-    setup = os.path.join(DIST, f"ProcessKiller-Setup-{v}.exe")
+    setup = os.path.join(DIST, f"TaskReaper-Setup-{v}.exe")
     data = open(setup, "rb").read()
     notes = a.notes or (open(os.path.join(REPO, "release_notes.md"), encoding="utf8").read().strip() if os.path.exists(os.path.join(REPO, "release_notes.md")) else "")
     manifest = {"version": v, "url": f"https://github.com/{SLUG}/releases/download/v{v}/{os.path.basename(setup)}",
@@ -106,7 +106,7 @@ def main():
         rsign = find(os.path.expandvars(r"%USERPROFILE%\.cargo\bin\rsign.exe"), "rsign")
         if not rsign:
             sys.exit("signing needs `rsign` (cargo install rsign2)")
-        sh([rsign, "sign", "-s", a.sign, "-W", "-x", setup + ".minisig", "-t", f"Process Killer {v}", setup])
+        sh([rsign, "sign", "-s", a.sign, "-W", "-x", setup + ".minisig", "-t", f"Task Reaper {v}", setup])
         manifest["signature"] = open(setup + ".minisig", encoding="utf8").read()
     json.dump(manifest, open(os.path.join(DIST, "latest.json"), "w", encoding="utf8"), indent=2)
     print(f"\nexe      : {os.path.getsize(exe) / 1048576:.1f} MB\ninstaller: {setup} ({len(data) / 1048576:.1f} MB)\nsha256   : {manifest['sha256']}")
@@ -114,7 +114,7 @@ def main():
         files = [setup, os.path.join(DIST, "latest.json")] + ([setup + ".minisig"] if a.sign else [])
         branch = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True, cwd=REPO).stdout.strip() or "main"
         print(f"tagging v{v} on branch '{branch}' (it must already be pushed: git push origin {branch})")
-        sh([gh, "release", "create", f"v{v}", *files, "--repo", SLUG, "--target", branch, "--title", f"Process Killer {v}",
+        sh([gh, "release", "create", f"v{v}", *files, "--repo", SLUG, "--target", branch, "--title", f"Task Reaper {v}",
             "--notes", notes or f"Version {v}", "--prerelease"])
         print(f"Published v{v} as a PRE-RELEASE (installed apps do not see it). Test it, then: py tauri-app/tools/release.py --promote")
 

@@ -99,4 +99,36 @@ export default [
     await T.click(act(T, 'Manual'));
     await T.waitFor(() => T.text(rows(T)[0].children[3]) === 'Manual', { msg: 'manual' });
   } },
+
+  { name: 'verified: Start shows what Windows reports (confirmed toast, verified tag, row highlight that fades)', async run(T) {
+    await ready(T);
+    await search(T, 'ALG'); await pickRow(T, 'ALG');
+    await T.click(act(T, 'Start'));
+    await T.waitToast(/confirmed, now running/i);
+    await T.waitFor(() => T.text(rowOf(T, 'ALG')).includes('Running') && T.text(rowOf(T, 'ALG')).includes('verified'), { msg: 'Running + verified tag' });
+    T.assert(rowOf(T, 'ALG').classList.contains('fx-ok'), 'row highlighted');
+    await T.waitFor(() => !T.text(rowOf(T, 'ALG')).includes('verified'), { msg: 'tag fades again', timeout: 8000 });
+    T.assert(!rowOf(T, 'ALG').classList.contains('fx-ok'), 'highlight removed');
+  } },
+
+  { name: 'not verified: call "succeeded" but Windows still reports the old state -> shown as a failure', async run(T) {
+    await ready(T);
+    await search(T, 'wuauserv'); await pickRow(T, 'wuauserv');
+    await T.click(act(T, 'Disable')); await T.waitFor(() => T.modal()); await T.clickText('Disable anyway');
+    await T.waitToast(/still reports it as stopped \/ manual/);
+    await T.waitFor(() => rowOf(T, 'wuauserv').classList.contains('fx-bad'), { msg: 'row marked as failed' });
+    T.has(T.text(rowOf(T, 'wuauserv').children[3]), 'Manual');
+    T.assert(!T.text(rowOf(T, 'wuauserv')).includes('verified'), 'no verified tag');
+  } },
+
+  { name: 'slow service: shows Starting…, polls the real state, settles as verified', async run(T) {
+    await ready(T);
+    await search(T, 'BITS'); await pickRow(T, 'BITS');
+    const m = T.mark();
+    await T.click(act(T, 'Start'));
+    await T.waitFor(() => T.text(rowOf(T, 'BITS')).includes('Starting'), { msg: 'Starting… spinner' });
+    await T.waitToast(/still working/i);
+    await T.waitFor(() => T.calls('service_status', m).length >= 1, { msg: 'polls service_status', timeout: 8000 });
+    await T.waitFor(() => T.text(rowOf(T, 'BITS')).includes('Running') && T.text(rowOf(T, 'BITS')).includes('verified'), { msg: 'settles as Running + verified', timeout: 12000 });
+  } },
 ];

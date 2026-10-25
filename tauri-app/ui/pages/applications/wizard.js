@@ -107,7 +107,7 @@ export function openWizard(ctx, app, onClose) {
         if (!ack.checked) return notice('Please confirm', 'Tick “I understand the risks…” to continue.');
         const ov = await ctx.overview().catch(() => ({ is_admin: true }));
         if (!ov.is_admin) {
-          const yes = await ui.confirmDialog({ title: 'Administrator needed', text: 'Removing Microsoft Edge needs Administrator rights. Restart Process Killer as Administrator now?', confirmLabel: 'Restart as Administrator' });
+          const yes = await ui.confirmDialog({ title: 'Administrator needed', text: 'Removing Microsoft Edge needs Administrator rights. Restart Task Reaper as Administrator now?', confirmLabel: 'Restart as Administrator' });
           if (yes) api.invoke('relaunch_as_admin').catch((e) => ctx.toast(e.message, 'bad'));
           return;
         }

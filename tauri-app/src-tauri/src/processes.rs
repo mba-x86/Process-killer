@@ -120,9 +120,9 @@ pub fn refuse_reason(p: &Proc, own: u32, parent: u32) -> Option<&'static str> {
     if p.pid == 0 || p.pid == 4 || protect::is_protected_process(&p.name, &p.exe) {
         Some("protected system process")
     } else if p.pid == own {
-        Some("that is Process Killer itself")
+        Some("that is Task Reaper itself")
     } else if p.pid == parent {
-        Some("that is the program that launched Process Killer")
+        Some("that is the program that launched Task Reaper")
     } else {
         None
     }
@@ -185,7 +185,7 @@ pub async fn kill_process(app: tauri::AppHandle, pids: Vec<u32>, tree: bool) -> 
         let own = std::process::id();
         let parent = parent_pid(&all, own);
         let by_pid: HashMap<u32, &Proc> = all.iter().map(|p| (p.pid, p)).collect();
-        // our own WebView2 helper processes belong to Process Killer itself: ending them blanks the window
+        // our own WebView2 helper processes belong to Task Reaper itself: ending them blanks the window
         let own_tree: HashSet<u32> = descendants(&all, own).into_iter().collect();
         let mut out = Vec::new();
         let mut ended = 0usize;
@@ -194,7 +194,7 @@ pub async fn kill_process(app: tauri::AppHandle, pids: Vec<u32>, tree: bool) -> 
                 out.push(json!({ "pid": pid, "ok": true, "message": "already gone" }));
                 continue;
             };
-            let why = if own_tree.contains(&pid) { Some("that is part of Process Killer itself") } else { refuse_reason(p, own, parent) };
+            let why = if own_tree.contains(&pid) { Some("that is part of Task Reaper itself") } else { refuse_reason(p, own, parent) };
             if let Some(why) = why {
                 out.push(json!({ "pid": pid, "ok": false, "message": why }));
                 crate::activity::log(&app, "fail", format!("Refused to end {} (PID {pid}): {why}", p.name));

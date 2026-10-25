@@ -12,18 +12,33 @@ export default async function (ctx) {
   const { h, ui, icon } = ctx;
   ctx.css('css/pages/seltable.css');
   let all = [], q = '', filter = 'all', busy = false;
+  const fx = new Map();   // service name -> 'working' | 'ok' | 'bad' | 'pending' | 'verified' (UI-only feedback while / after an action)
+  const fxTimers = new Map();
+  const setFx = (name, v, ms) => {
+    clearTimeout(fxTimers.get(name));
+    if (v) fx.set(name, v); else fx.delete(name);
+    if (ms) fxTimers.set(name, setTimeout(() => { fx.delete(name); apply(); }, ms));
+  };
+  let alive = true;
+  ctx.onCleanup(() => { alive = false; fxTimers.forEach(clearTimeout); });
 
   const head = ui.pageHead({ title: 'Services', sub: 'Loading…' });
   const table = seltable({
     rowKey: 'name', sortKey: 'display', limit: 300, emptyText: 'No services match',
     rowTitle: (r) => `${r.display} (${r.name})`,
+    rowClass: (r) => { const v = fx.get(r.name); return v === 'ok' || v === 'verified' ? 'fx-ok' : v === 'bad' ? 'fx-bad' : ''; },
     onSelect: () => paintButtons(),
     columns: [
       { key: 'display', label: 'Display name', sort: ci('display'), width: '28%' },
       { key: 'name', label: 'Service name', sort: ci('name'), width: '16%' },
-      { key: 'status', label: 'Status', width: '9%', text: (r) => cap(r.status),
-        render: (r) => h('span', { class: r.status === 'running' ? 'st-run' : r.status === 'stopped' ? 'st-stop' : 'st-pend' }, cap(r.status)) },
-      { key: 'start', label: 'Startup', width: '10%', text: (r) => START[r.start] || cap(r.start) },
+      { key: 'status', label: 'Status', width: '14%', text: (r) => cap(r.status), sig: (r) => `${r.status}|${fx.get(r.name) || ''}`,
+        render: (r) => {
+          const v = fx.get(r.name);
+          if (v === 'working' || v === 'pending') return h('span', { class: 'st-work' }, v === 'pending' ? 'Starting…' : 'Working…');
+          const pill = h('span', { class: [r.status === 'running' ? 'st-run' : r.status === 'stopped' ? 'st-stop' : 'st-pend', v && 'st-pop'] }, cap(r.status));
+          return v === 'verified' ? [pill, h('span', { class: 'st-chk', title: 'Windows confirmed the change' }, icon('check', 11, { 'stroke-width': 2.2 }), 'verified')] : pill;
+        } },
+      { key: 'start', label: 'Startup', width: '12%', text: (r) => START[r.start] || cap(r.start), sig: (r) => `${r.start}|${fx.get(r.name) || ''}` },
       { key: 'path', label: 'Path', mono: true, cls: 'path', text: (r) => r.path || '—', sort: ci('path') },
     ],
   });
@@ -78,15 +93,51 @@ export default async function (ctx) {
       if (!ok) return;
     }
     busy = true; paintButtons();
+    rows.forEach((r) => setFx(r.name, 'working'));
+    apply();
     try {
       const { results } = await ctx.api.invoke('set_service_state', { names: rows.map((r) => r.name), action });
       const disp = new Map(rows.map((r) => [r.name, r.display]));
+      const byName = new Map(all.map((s) => [s.name, s]));
+      const slow = [];
+      // show what Windows REPORTS after the action (the backend re-reads it), not what we hoped for
+      for (const r of results) {
+        const s = byName.get(r.name);
+        if (s && r.status && r.status !== 'unknown') s.status = r.status;
+        if (s && r.start && r.start !== 'unknown') s.start = r.start;
+        if (r.pending) { slow.push(r.name); setFx(r.name, 'pending'); } else setFx(r.name, r.ok && r.verified ? 'verified' : r.ok ? 'ok' : 'bad', r.ok ? 3500 : 3000);
+      }
+      apply();
       const bad = results.filter((r) => !r.ok);
-      results.slice(0, 4).forEach((r) => ctx.toast(`${disp.get(r.name) || r.name}: ${r.ok ? past.toLowerCase() : r.message}`, r.ok ? 'ok' : 'bad'));
+      const say = (r) => `${disp.get(r.name) || r.name}: ${r.ok ? (r.verified ? `${past.toLowerCase()} - confirmed, now ${r.status} · ${START[r.start] || r.start}` : r.pending ? 'still working…' : past.toLowerCase()) : r.message}`;
+      results.slice(0, 4).forEach((r) => ctx.toast(say(r), r.ok ? 'ok' : 'bad'));
       if (results.length > 4) ctx.toast(`${results.length - 4} more: ${results.length - bad.length} of ${results.length} succeeded`, bad.length ? 'bad' : 'ok');
-    } catch (e) { ctx.toast(e.message, 'bad'); }
+      if (slow.length) watchSlow(slow, action);
+    } catch (e) { rows.forEach((r) => setFx(r.name, null)); ctx.toast(e.message, 'bad'); }
     busy = false;
+    paintButtons();
     await load();
+  }
+
+  /** A service that is still starting/stopping: poll its real state (max ~20 s) and settle the row when it gets there. */
+  async function watchSlow(names, action) {
+    const want = { start: 'running', restart: 'running', stop: 'stopped' }[action];
+    let left = names.slice();
+    for (let i = 0; i < 20 && left.length && alive; i++) {
+      await new Promise((r) => setTimeout(r, 1000));
+      if (!alive) return;
+      let st;
+      try { st = (await ctx.api.invoke('service_status', { names: left })).services; } catch { break; }
+      const byName = new Map(all.map((s) => [s.name, s]));
+      for (const x of st) {
+        const s = byName.get(x.name);
+        if (s) { s.status = x.status; s.start = x.start; }
+        if (x.status !== 'pending') { left = left.filter((n) => n !== x.name); setFx(x.name, !want || x.status === want ? 'verified' : 'bad', 3000); }
+      }
+      apply();
+    }
+    left.forEach((n) => setFx(n, null));
+    apply();
   }
 
   const card = h('div', { class: 'card tcard' }, table.el);

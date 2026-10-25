@@ -5,8 +5,8 @@ import { openWizard } from './applications/wizard.js';
 
 const LIMIT = 300;                       // never render more rows than this
 const NOTE = {
-  broken: 'The uninstaller file is missing, so Windows can’t remove this. Process Killer can remove the dead entry and its leftover files.',
-  edge: 'Built into Windows. Microsoft doesn’t officially support removing Edge, and Windows Update can bring it back. Process Killer can remove it safely (WebView2 is kept).',
+  broken: 'The uninstaller file is missing, so Windows can’t remove this. Task Reaper can remove the dead entry and its leftover files.',
+  edge: 'Built into Windows. Microsoft doesn’t officially support removing Edge, and Windows Update can bring it back. Task Reaper can remove it safely (WebView2 is kept).',
 };
 const COLS = [['name', 'Name'], ['publisher', 'Publisher'], ['version', 'Version'], ['size', 'Size', true], ['date', 'Installed']];
 const text = (a, b) => String(a || '').localeCompare(String(b || ''), undefined, { numeric: true, sensitivity: 'base' });

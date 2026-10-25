@@ -211,7 +211,7 @@ pub fn block_edge_reinstall_at(hive: Hive, path: &str) -> Result<String, String>
             Ok(()) => Ok(format!("reinstall blocked ({}\\{path} \\ {value} = 0)", hive.name())),
             Err(e) => Err(e.to_string()),
         },
-        Err(e) if e.kind() == std::io::ErrorKind::PermissionDenied => Err("access denied - run Process Killer as Administrator".into()),
+        Err(e) if e.kind() == std::io::ErrorKind::PermissionDenied => Err("access denied - run Task Reaper as Administrator".into()),
         Err(e) => Err(e.to_string()),
     }
 }
@@ -247,7 +247,7 @@ pub fn remove_uninstall_entry_in(app: &AppInfo, backup_dir: &Path, stamp: &str) 
         .and_then(|p| p.delete_subkey_all(leaf));
     match r {
         Ok(()) => Ok(bs),
-        Err(e) if e.kind() == std::io::ErrorKind::PermissionDenied => Err("access denied - run Process Killer as Administrator".into()),
+        Err(e) if e.kind() == std::io::ErrorKind::PermissionDenied => Err("access denied - run Task Reaper as Administrator".into()),
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(bs),
         Err(e) => Err(e.to_string()),
     }

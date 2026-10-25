@@ -20,7 +20,7 @@ const UI_FILES: usize = 1500;
 const UI_FOLDERS: usize = 500;
 const PROGRESS_EVERY: Duration = Duration::from_millis(1500);
 
-static SCAN_RUNNING: AtomicBool = AtomicBool::new(false);
+pub(crate) static SCAN_RUNNING: AtomicBool = AtomicBool::new(false);
 
 type Item = (u64, String, u64); // size, path, mtime (heap orders by size first)
 
@@ -395,7 +395,7 @@ pub fn validate_path(p: &str) -> Option<String> {
     Some(s.trim_end_matches('\\').to_string())
 }
 
-fn recycle_one(path: &str) -> (bool, String) {
+pub(crate) fn recycle_one(path: &str) -> (bool, String) {
     let Some(p) = validate_path(path) else { return (false, "invalid path".into()) };
     if crate::protect::is_protected_file(&p) {
         return (false, "protected system file".into());

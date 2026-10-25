@@ -1,5 +1,5 @@
 // Copyright (c) 2026 mba-x86. Released under the MIT License (see LICENSE).
-//! Process Killer 2.0 backend. One module per UI domain; the command list is registered below (orchestrator-owned).
+//! Task Reaper backend. One module per UI domain; the command list is registered below (orchestrator-owned).
 mod activity;
 mod jobs;
 mod protect;
@@ -11,6 +11,7 @@ mod util;
 // domain modules (each owned by one backend agent; see docs/RUST_GUIDE.md)
 mod apps;
 mod cleanup;
+mod dupes;
 mod perf;
 mod processes;
 mod services;
@@ -56,6 +57,8 @@ pub fn run() {
             storage::storage_scan_cancel,
             storage::choose_folder,
             storage::recycle_files,
+            dupes::dupes_scan_start,
+            dupes::dupes_recycle,
             // updates (activity, settings, about, updater)
             updates::get_activity,
             updates::clear_activity,
@@ -74,6 +77,7 @@ pub fn run() {
             // manage (services / processes / startup; open_location is shared with storage)
             services::list_services,
             services::set_service_state,
+            services::service_status,
             processes::list_processes,
             processes::kill_process,
             processes::open_location,
@@ -81,5 +85,5 @@ pub fn run() {
             startup::remove_startup,
         ])
         .run(tauri::generate_context!())
-        .expect("error while running Process Killer");
+        .expect("error while running Task Reaper");
 }

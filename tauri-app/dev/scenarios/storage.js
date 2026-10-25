@@ -136,4 +136,62 @@ export default [
     await T.waitFor(() => T.calls('storage_scan_start', m).length === 3, { msg: 'drill scan' });
     await scanDone(T);
   } },
+
+  { name: 'duplicates: own tab + scan, keep-one rule, auto-select, delete payload keeps a copy', async run(T) {
+    await ready(T);
+    const groups = () => T.$$('.dp .dp-group');
+    const dpBtn = (re) => T.byText(re, { root: T.$('.dp'), tags: 'button' });
+    await T.step('tab swaps the panel', async () => {
+      await T.click({ text: 'Duplicates' }, { root: T.$('.st-seg') });
+      T.assert(T.$('.st-table').hidden && !T.$('.dp').hidden, 'table hidden, duplicates panel shown');
+      T.has(T.text('.dp .st-status'), 'press Scan');
+    });
+    await T.step('scan runs and finds groups', async () => {
+      await T.click(scanBtn(T)); T.eq(T.text(scanBtn(T)), 'Stop');
+      await T.waitFor(() => /Looking for files of the same size/.test(T.text('.dp .st-status')), { msg: 'walk phase', timeout: 8000 });
+      await T.waitFor(() => /^Finished/.test(T.text('.dp .st-status')), { msg: 'finished', timeout: 30000 });
+      T.eq(T.text(scanBtn(T)), 'Scan'); T.assert(groups().length > 3, 'groups rendered');
+      T.has(T.text('.dp .dp-sum'), 'can be freed'); T.has(T.text('.dp .st-status'), 'cloud-only');
+      T.eq(T.$$('.dp .dp-tag.rm').length, 0, 'nothing selected yet');
+    });
+    await T.step('cannot tick every copy of a file', async () => {
+      const n = T.$$('input.chk', groups()[0]).length;
+      for (let i = 0; i < n; i++) await T.click(T.$$('input.chk', groups()[0])[i]);
+      await T.waitToast(/Keep at least one copy/);
+      T.eq(T.$$('.dp-tag.keep', groups()[0]).length, 1, 'one copy still marked Keep');
+      await T.click(dpBtn('Clear selection'));
+      T.eq(T.$$('.dp .dp-tag.rm').length, 0, 'selection cleared');
+    });
+    await T.step('auto-select keeps one per group', async () => {
+      await T.click(dpBtn('Select the extra copies'));
+      T.assert(groups().every((g) => T.$$('.dp-tag.keep', g).length === 1), 'exactly one Keep per visible group');
+      T.assert(/Move \d+ files? to Recycle Bin/.test(T.text(dpBtn(/Move \d+/))), 'delete button counts the files');
+    });
+    await T.step('delete: cancel is a no-op, confirm sends keep + remove per group', async () => {
+      const m = T.mark();
+      await T.click(dpBtn(/Move \d+/)); await T.waitFor(() => T.modal()); T.has(T.modalText(), 'One identical copy of each');
+      await T.clickText('Cancel'); T.eq(T.calls('dupes_recycle', m).length, 0, 'cancel = no call');
+      await T.click(dpBtn(/Move \d+/)); await T.waitFor(() => T.modal()); await T.click({ text: 'Move to Recycle Bin' }, { root: T.$('.modal-foot') });
+      await T.waitFor(() => T.calls('dupes_recycle', m).length === 1, { msg: 'dupes_recycle call' });
+      const g = T.calls('dupes_recycle', m)[0].args.groups;
+      T.assert(g.length > 3 && g.every((x) => x.keep && x.keep.path && x.remove.length >= 1 && x.size > 0), 'every group has a keep + removals');
+      T.assert(g.every((x) => !x.remove.some((r) => r.path.toLowerCase() === x.keep.path.toLowerCase())), 'keep is never in remove');
+      await T.waitToast(/Moved \d+ of \d+ files/);
+      await T.waitFor(() => /No duplicates found/.test(T.text('.dp .dp-sum')), { msg: 'list empties', timeout: 8000 });
+    });
+  } },
+
+  { name: 'duplicates: Stop cancels the scan; switching back to Files restores the table', async run(T) {
+    await ready(T);
+    await T.click({ text: 'Duplicates' }, { root: T.$('.st-seg') });
+    await T.click(scanBtn(T));
+    await T.waitFor(() => /Looking for files|Comparing|Reading/.test(T.text('.dp .st-status')), { msg: 'scan started', timeout: 8000 });
+    const m = T.mark();
+    await T.click(scanBtn(T));
+    await T.waitFor(() => T.calls('storage_scan_cancel', m).length === 1, { msg: 'cancel call' });
+    await T.waitFor(() => T.text('.dp .st-status') === 'Stopped.', { msg: 'Stopped', timeout: 8000 });
+    T.eq(T.text(scanBtn(T)), 'Scan'); T.eq(T.$$('.dp .dp-group').length, 0, 'no partial results');
+    await T.click({ text: 'Files' }, { root: T.$('.st-seg') });
+    T.assert(!T.$('.st-table').hidden && T.$('.dp').hidden, 'files table back, duplicates panel hidden');
+  } },
 ];

@@ -129,7 +129,7 @@ fn shell_open(target: &str) -> bool {
 #[tauri::command(rename_all = "snake_case")]
 pub fn open_url(url: String) -> CmdResult<()> {
     if !is_repo_url(&url) {
-        return err("Only the Process Killer project page can be opened from here.");
+        return err("Only the Task Reaper project page can be opened from here.");
     }
     if shell_open(url.trim()) {
         Ok(())

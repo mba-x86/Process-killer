@@ -61,7 +61,46 @@ mock('storage_scan_start', ({ roots, min_size = MB }) => {
   })();
   return { job };
 });
-mock('storage_scan_cancel', ({ job }) => { const s = jobs.get(job); if (s) s.cancel = true; return null; });
+mock('storage_scan_cancel', ({ job }) => { const s = jobs.get(job) || dupJobs.get(job); if (s) s.cancel = true; return null; });
+// ---- duplicates (contract: docs/api/storage.md) --------------------------------------------------------
+// dupes:progress {job, phase: walk|head|hash, files, candidates, hash_total, hashed, errors, skipped_cloud, current}
+// dupes:done     {job, cancelled, errors, skipped_cloud, files, total_groups, total_files, wasted, groups:[{size, count, files:[{path, mtime}]}]}
+const dupGroups = (roots) => {
+  const r = roots[0].replace(/\\+$/, '');
+  const mk = (size, names) => ({ size: Math.round(size), count: names.length, files: names.map((p, i) => ({ path: `${r}\\${p}`, mtime: NOW - (i + 1) * 9 * DAY })) });
+  return [
+    mk(4.2 * GB, ['Videos\\trip-2025.mp4', 'Backup\\Videos\\trip-2025.mp4', 'Downloads\\trip-2025 (1).mp4']),
+    mk(1.9 * GB, ['Downloads\\backup-photos.zip', 'Archive\\backup-photos.zip']),
+    mk(640 * MB, ['Music\\library.flac', 'Music\\old\\library copy.flac']),
+    mk(48 * MB, ['Docs\\report.pdf', 'Docs\\Old\\report.pdf', 'Desktop\\report.pdf', 'Mail\\attachments\\report.pdf']),
+    ...Array.from({ length: 70 }, (_, i) => mk((3 + i) * MB, [`Pictures\\2024\\IMG_${2000 + i}.jpg`, `Pictures\\Export\\IMG_${2000 + i}.jpg`])),
+  ];
+};
+let dupN = 0;
+const dupJobs = new Map();
+mock('dupes_scan_start', ({ roots }) => {
+  const job = `dup${++dupN}`, st = { cancel: false }; dupJobs.set(job, st);
+  const ms = (t) => new Promise((r) => setTimeout(r, t));
+  (async () => {
+    await ms(400);
+    for (const [phase, n] of [['walk', 3], ['head', 2], ['hash', 4]]) {
+      for (let i = 1; i <= n && !st.cancel; i++) {
+        emit('dupes:progress', { job, phase, files: 41000 * i, candidates: 8200, hash_total: 12 * GB, hashed: (12 * GB * i) / n, errors: 4, skipped_cloud: 2, current: `${roots[0]}Users\\mba\\Pictures` });
+        await ms(700);
+      }
+    }
+    const groups = st.cancel ? [] : dupGroups(roots);
+    emit('dupes:done', { job, cancelled: st.cancel, errors: 4, skipped_cloud: 2, files: 123000, total_groups: groups.length, total_files: groups.reduce((s, g) => s + g.count, 0),
+      wasted: groups.reduce((s, g) => s + g.size * (g.count - 1), 0), groups });
+    dupJobs.delete(job);
+  })();
+  return { job };
+});
+mock('dupes_recycle', ({ groups }) => ({ results: groups.flatMap((g) => {
+  // same rule as the backend: never remove a file unless the kept copy is still listed and different from it
+  if (!g.keep || g.remove.some((r) => r.path.toLowerCase() === g.keep.path.toLowerCase())) return g.remove.map((r) => ({ path: r.path, ok: false, message: 'the file to keep is also marked for removal' }));
+  return g.remove.map((r) => ({ path: r.path, ok: true, message: 'moved to Recycle Bin' }));
+}) }));
 mock('choose_folder', () => ({ path: 'C:\\Users\\mba\\Videos' }));
 mock('open_location', () => null);
 mock('recycle_files', ({ paths }) => ({ results: paths.map((path) => {

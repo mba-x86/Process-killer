@@ -40,7 +40,7 @@ fn win_msg(e: &windows::core::Error) -> String {
 
 fn code_msg(code: u32, fallback: &str) -> String {
     match code {
-        5 => "Access denied - run Process Killer as Administrator".into(),
+        5 => "Access denied - run Task Reaper as Administrator".into(),
         1051 => "Other running services depend on it - stop those first".into(),
         1053 => "The service did not respond in time".into(),
         1058 => "The service is disabled".into(),
@@ -117,6 +117,20 @@ const HARD_BLOCKED: &[&str] = &[
 
 pub fn is_hard_blocked(name: &str) -> bool {
     HARD_BLOCKED.contains(&name.to_lowercase().as_str())
+}
+
+/// Does the state Windows reports AFTER an action match what the action should have produced?
+/// Returns (verified, pending): `pending` = a slow service is still starting/stopping, so the UI should keep watching.
+pub fn expected_state(action: Action, status: &str, start: &str) -> (bool, bool) {
+    let pending = status == "pending";
+    let ok = match action {
+        Action::Start | Action::Restart => status == "running",
+        Action::Stop => status == "stopped",
+        Action::Enable => start == "automatic" || start == "delayed",
+        Action::Manual => start == "manual",
+        Action::Disable => start == "disabled",
+    };
+    (ok, pending && !ok)
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -365,6 +379,26 @@ fn apply(scm: &Sc, name: &str, action: Action) -> Result<String, String> {
     }
 }
 
+/// Current (status, startup type) of one service, straight from the Service Control Manager.
+fn read_back(scm: &Sc, name: &str) -> (&'static str, &'static str) {
+    let w = wide(name);
+    let start = query_config(scm, &w).map_or("unknown", |(_, st, delayed)| map_start(st, delayed));
+    let status = open_svc(scm, name, SERVICE_QUERY_STATUS).ok().and_then(|h| current_state(&h)).map_or("unknown", map_status);
+    (status, start)
+}
+
+/// Poll a service that was still starting/stopping (UI calls this until `pending` is false).
+#[tauri::command(rename_all = "snake_case")]
+pub async fn service_status(names: Vec<String>) -> CmdResult<Value> {
+    let rows = tauri::async_runtime::spawn_blocking(move || -> CmdResult<Vec<Value>> {
+        let scm = open_scm(SC_MANAGER_CONNECT)?;
+        Ok(names.iter().map(|n| { let (status, start) = read_back(&scm, n); json!({ "name": n, "status": status, "start": start }) }).collect())
+    })
+    .await
+    .map_err(|e| crate::util::CmdError(e.to_string()))??;
+    Ok(json!({ "services": rows }))
+}
+
 #[tauri::command(rename_all = "snake_case")]
 pub async fn set_service_state(app: tauri::AppHandle, names: Vec<String>, action: String) -> CmdResult<Value> {
     let act = match parse_action(&action) {
@@ -381,12 +415,16 @@ pub async fn set_service_state(app: tauri::AppHandle, names: Vec<String>, action
                 Ok(m) => (true, m),
                 Err(m) => (false, m),
             };
+            // never trust the call alone: read the service back from the SCM and compare with what the action should give
+            let (status, start) = read_back(&scm, &name);
+            let (verified, pending) = if ok { expected_state(act, status, start) } else { (false, false) };
+            let message = if ok && !verified && !pending { format!("{message} - but Windows still reports it as {status} / {start}") } else { message };
             crate::activity::log(
                 &app2,
-                if ok { "ok" } else { "fail" },
-                format!("Service {name}: {action} - {message}"),
+                if ok && (verified || pending) { "ok" } else { "fail" },
+                format!("Service {name}: {action} - {message} [now {status}, startup {start}{}]", if verified { ", verified" } else { "" }),
             );
-            out.push(json!({ "name": name, "ok": ok, "message": message }));
+            out.push(json!({ "name": name, "ok": ok && (verified || pending), "message": message, "verified": verified, "pending": pending, "status": status, "start": start }));
         }
         Ok(out)
     })
@@ -436,6 +474,20 @@ mod tests {
             assert!(apply(&scm, "RpcSs", Action::Stop).is_err());
             assert!(apply(&scm, "DcomLaunch", Action::Disable).is_err());
         }
+    }
+
+    #[test]
+    fn expected_vs_actual() {
+        assert_eq!(expected_state(Action::Stop, "stopped", "manual"), (true, false));
+        assert_eq!(expected_state(Action::Stop, "running", "manual"), (false, false));
+        assert_eq!(expected_state(Action::Stop, "pending", "manual"), (false, true));
+        assert_eq!(expected_state(Action::Start, "running", "disabled"), (true, false));
+        assert_eq!(expected_state(Action::Restart, "stopped", "manual"), (false, false));
+        assert_eq!(expected_state(Action::Disable, "stopped", "disabled"), (true, false));
+        assert_eq!(expected_state(Action::Disable, "running", "manual"), (false, false));
+        assert_eq!(expected_state(Action::Enable, "running", "delayed"), (true, false));
+        assert_eq!(expected_state(Action::Enable, "stopped", "manual"), (false, false));
+        assert_eq!(expected_state(Action::Manual, "running", "manual"), (true, false));
     }
 
     #[test]

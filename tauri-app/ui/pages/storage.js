@@ -1,5 +1,6 @@
 // Copyright (c) 2026 mba-x86. Released under the MIT License (see LICENSE).
 // Storage analyzer. API: docs/api/storage.md
+import { createDupes } from './storage/dupes.js';
 const MB = 1048576;
 const TYPES = {
   Videos: 'mp4 mkv avi mov wmv flv webm m4v mpg mpeg ts', Audio: 'mp3 wav flac aac ogg m4a wma',
@@ -50,8 +51,9 @@ export default async function (ctx) {
   let qTimer;
   const search = h('input', { class: 'field', type: 'search', placeholder: 'Filter by name or path…', style: { width: '230px' }, 'aria-label': 'Filter',
     oninput: () => { clearTimeout(qTimer); qTimer = setTimeout(() => refresh(true), 150); } });
-  const seg = ui.segmented({ options: [['files', 'Files'], ['folders', 'Folders']], value: 'files', onChange: setView });
-  const filters = h('div', { class: 'st-filters' }, h('div', { class: 'st-tools' }, typeSel, sizeSel, search), h('div', { class: 'st-seg' }, seg));
+  const seg = ui.segmented({ options: [['files', 'Files'], ['folders', 'Folders'], ['dupes', 'Duplicates']], value: 'files', onChange: setView });
+  const filterTools = h('div', { class: 'st-tools' }, typeSel, sizeSel, search);
+  const filters = h('div', { class: 'st-filters' }, filterTools, h('div', { class: 'st-seg' }, seg));
 
   /* ---------------- progress + status ---------------- */
   const progFill = h('i'), prog = h('div', { class: 'st-bar st-bar-prog' }, progFill);
@@ -148,7 +150,12 @@ export default async function (ctx) {
     bOpen.disabled = bCopy.disabled = bDel.disabled = bDrill.disabled = bOpenF.disabled = !n;
     bDrill.disabled = !n || S.scanning || [...S.sel][0]?.endsWith(ROOT_FILES);
   }
-  function setView(v) { S.view = v; S.sel = new Set(); anchor = null; refresh(true); }
+  function setView(v) {
+    S.view = v; S.sel = new Set(); anchor = null;
+    const d = v === 'dupes';   // the duplicates tab has its own panel; the scope cards + Scan button above are shared
+    dup.el.hidden = !d; filterTools.hidden = progBox.hidden = tableCard.hidden = acts.hidden = d;
+    refresh(true);
+  }
   async function openLoc(path) { try { await api.invoke('open_location', { path }); } catch (e) { ctx.toast(e.message, 'bad'); } }
   async function copyPath() {
     const t = [...S.sel].map((p) => p.replace(ROOT_FILES, '')).join('\n');
@@ -238,10 +245,19 @@ export default async function (ctx) {
     status.replaceChildren(`${p.cancelled ? 'Stopped' : 'Finished'}: ${fmt.num(st.files)} files, ${fmt.bytes(st.bytes)} analysed (${fmt.num(p.errors ?? st.errors ?? 0)} protected folders skipped)`);
     refresh(true);
   }
+  const currentRoots = () => (S.custom ? [S.custom] : S.drives.filter((d) => S.key === 'ALL' || d.mount === S.key).map((d) => d.mount));
+  /** Scan button + scope controls while a duplicate scan runs (the files scan sets these itself in startScan/onDone). */
+  function dupBusy(on) {
+    S.scanning = on;
+    if (on) { btnScan.replaceChildren(icon('stop', 12), 'Stop'); btnScan.className = 'btn btn-danger'; btnScan.disabled = false; btnChoose.disabled = true; btnUp.disabled = true; }
+    else { btnScan.replaceChildren(icon('play', 15), 'Scan'); btnScan.className = 'btn btn-p'; btnScan.disabled = false; btnChoose.disabled = false; paintScope(); }
+  }
+  const dup = createDupes({ ctx, roots: currentRoots, onBusy: dupBusy });
+  ctx.onCleanup(() => dup.destroy());
   async function startScan() {
     if (S.scanning) return;
-    let roots;
-    if (S.custom) roots = [S.custom]; else roots = S.drives.filter((d) => S.key === 'ALL' || d.mount === S.key).map((d) => d.mount);
+    if (S.view === 'dupes') return dup.start();
+    const roots = currentRoots();
     if (!roots.length) { ctx.toast('No partition to scan'); return; }
     S.scanning = true; S.starting = true; S.job = null; S.files = []; S.folders = []; S.stats = null; S.sel = new Set();
     btnScan.replaceChildren(icon('stop', 12), 'Stop'); btnScan.className = 'btn btn-danger'; btnChoose.disabled = true; btnUp.disabled = true;
@@ -253,6 +269,7 @@ export default async function (ctx) {
     } catch (e) { S.scanning = false; S.starting = false; ctx.toast(e.message, 'bad'); onDone({ job: S.job, cancelled: true, errors: 0 }); }
   }
   async function stopScan() {
+    if (dup.busy) { btnScan.disabled = true; btnScan.replaceChildren('Stopping…'); return dup.stop(); }
     if (!S.scanning || !S.job) return;
     btnScan.disabled = true; btnScan.replaceChildren('Stopping…');
     try { await api.invoke('storage_scan_cancel', { job: S.job }); } catch (e) { ctx.toast(e.message, 'bad'); }
@@ -264,6 +281,6 @@ export default async function (ctx) {
   try { S.drives = await api.invoke('get_drives'); } catch (e) { ctx.toast(e.message, 'bad'); }
   buildCards(); refresh(true);
   if (!api.inTauri && /autoscan/.test(location.search)) setTimeout(startScan, 100);   // test hook (browser/mock only)
-  return [ui.pageHead({ title: 'Storage analyzer', sub: 'Find the heaviest files and folders on any partition' }),
-    cardsHost, tools, filters, progBox, tableCard, acts];
+  return [ui.pageHead({ title: 'Storage analyzer', sub: 'Find the heaviest files, folders and duplicate files on any partition' }),
+    cardsHost, tools, filters, progBox, tableCard, acts, dup.el];
 }

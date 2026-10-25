@@ -1,6 +1,7 @@
 // Copyright (c) 2026 mba-x86. Released under the MIT License (see LICENSE).
 // About & updates. State lives in js/updates.js (shared with the banner); this page only renders it.
 import * as upd from '../js/updates.js';
+import { logo } from '../js/icons.js';
 
 const TAGS = { new: ['New', '#16233A', '#8DBBFF'], improved: ['Better', '#16233A', '#8DBBFF'], fixed: ['Fixed', '#1F242B', '#A7B0BB'] };
 
@@ -27,20 +28,18 @@ export default async function (ctx) {
   const subTitle = h('span', { style: { fontSize: '12px', color: 'var(--muted)' } });
   const notesEl = h('ul', { style: { margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '14px', lineHeight: 1.5, maxWidth: '900px' } });
 
-  const head = ui.pageHead({ title: 'About & updates', sub: `Process Killer · version ${about.version}` });
+  const head = ui.pageHead({ title: 'About & updates', sub: `Task Reaper · version ${about.version}` });
 
-  const hero = h('section', { class: 'card', 'aria-label': 'Process Killer', style: { padding: '26px 30px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '30px' } },
-    h('span', { style: { width: '100px', height: '100px', borderRadius: '24px', background: '#111418', border: '1px solid var(--card-line)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flex: 'none' } }, ctx.logo ? ctx.logo(68) : logoSvg(h, 68)),
+  const hero = h('section', { class: 'card', 'aria-label': 'Task Reaper', style: { padding: '26px 30px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '30px' } },
+    h('span', { style: { width: '100px', height: '100px', borderRadius: '24px', background: '#111418', border: '1px solid var(--card-line)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flex: 'none' } }, logo(68)),
     h('div', { style: { flex: '1 1 320px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: '10px' } },
-      h('div', { class: 'col', style: { '--g': '4px' } }, h('h2', { style: { fontSize: '21px', fontWeight: 600, letterSpacing: '-.01em' } }, 'Process Killer'),
+      h('div', { class: 'col', style: { '--g': '4px' } }, h('h2', { style: { fontSize: '21px', fontWeight: 600, letterSpacing: '-.01em' } }, 'Task Reaper'),
         h('span', { class: 'muted' }, `Version ${about.version} · ${about.copyright} · ${about.license}`)),
       status,
       h('div', { class: 'row wrap', style: { '--g': '18px', marginTop: '4px' } }, h('div', { class: 'row' }, btnCheck, btnInstall), auto)));
 
   const notesCard = h('section', { class: 'card', style: { flex: 1, minHeight: '260px', padding: '24px 30px', display: 'flex', flexDirection: 'column', gap: '16px' } },
     h('div', { class: 'row', style: { alignItems: 'baseline', '--g': '10px' } }, h('h2', {}, "What's new"), subTitle), notesEl);
-
-  const github = ui.button({ label: 'Project on GitHub', kind: 'ghost', icon: 'external', onClick: () => api.invoke('open_url', { url: about.repo_url }).catch((e) => ctx.toast(e.message, 'bad')) });
 
   let lastNotesKey = '';
   const paintNotes = (text, ver) => {
@@ -81,11 +80,5 @@ export default async function (ctx) {
   paint(upd.state);
   if (!upd.state.checked) upd.checkNow({ manual: false });
 
-  return [head, hero, notesCard, h('footer', { style: { padding: '2px 4px 0' } }, github)];
-}
-
-function logoSvg(h, size) {
-  const s = h('svg', { width: size, height: size, viewBox: '0 0 28 28', fill: 'none', 'aria-hidden': 'true' });
-  s.innerHTML = '<circle cx="14" cy="14" r="11" stroke="#FF6B3D" stroke-width="2.2" stroke-dasharray="14 3.3"/><path d="M9.5 9.5l9 9M18.5 9.5l-9 9" stroke="#E8EBEF" stroke-width="2.6" stroke-linecap="round"/>';
-  return s;
+  return [head, hero, notesCard];
 }

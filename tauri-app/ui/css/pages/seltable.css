@@ -15,6 +15,16 @@
 .st-run { color: var(--ok-text); } .st-run::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
 .st-stop { color: var(--muted); } .st-stop::before { content: ""; width: 6px; height: 6px; border-radius: 50%; box-sizing: border-box; border: 1.5px solid #4A525C; }
 .st-pend { color: var(--amber); } .st-pend::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--amber); }
+/* service actions: spinner while Windows works, then a pop on the new state + a short row highlight (verified / failed) */
+.st-pop { animation: st-pop .45s cubic-bezier(.2, .9, .3, 1.25); }
+@keyframes st-pop { from { transform: scale(.7); opacity: 0; } }
+.st-work { display: inline-flex; align-items: center; gap: 7px; color: var(--amber); }
+.st-work::before { content: ""; width: 10px; height: 10px; box-sizing: border-box; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: rot .8s linear infinite; }
+.st-chk { display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; font-size: 11px; color: var(--ok-text); animation: st-pop .45s cubic-bezier(.2, .9, .3, 1.25); }
+.sel-tbl tr.fx-ok td { animation: fx-ok 2s ease-out; }
+.sel-tbl tr.fx-bad td { animation: fx-bad 2.4s ease-out; }
+@keyframes fx-ok { from { background: rgba(91, 214, 154, .20); } }
+@keyframes fx-bad { from { background: rgba(255, 107, 107, .22); } }
 .mbar { display: flex; align-items: center; gap: 10px; }
 .mbar i { display: block; flex: 1; height: 5px; min-width: 60px; border-radius: 3px; background: var(--track); overflow: hidden; }
 .mbar b { display: block; height: 100%; border-radius: 3px; background: var(--teal); }

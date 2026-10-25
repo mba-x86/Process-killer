@@ -41,17 +41,33 @@ for (let i = 0; rows.length < 308; i++) {
 }
 
 mock('list_services', () => ({ services: rows }));
+// Contract: every result carries what Windows reports AFTER the action ({status, start}) and whether it matches
+// ({verified}); a slow service answers {pending: true} and is polled with service_status until it settles.
+//   BITS   + start   -> slow (pending, settles to running on the 2nd poll)
+//   wuauserv + disable -> the call "succeeds" but Windows still reports manual (verified: false, ok: false)
+let polls = 0;
+mock('service_status', ({ names }) => {
+  polls++;
+  return { services: names.map((name) => {
+    const s = rows.find((r) => r.name === name);
+    if (name === 'BITS' && polls >= 2 && s.status === 'pending') s.status = 'running';
+    return { name, status: s ? s.status : 'unknown', start: s ? s.start : 'unknown' };
+  }) };
+});
 mock('set_service_state', ({ names, action }) => ({
   results: names.map((name) => {
     const s = rows.find((r) => r.name === name);
-    if (!s) return { name, ok: false, message: 'service not found' };
-    if (name === 'Spooler' && action === 'stop') return { name, ok: false, message: 'Access is denied (administrator needed)' };
+    if (!s) return { name, ok: false, message: 'service not found', verified: false, pending: false, status: 'unknown', start: 'unknown' };
+    const rep = (ok, message, extra = {}) => ({ name, ok, message, verified: ok, pending: false, status: s.status, start: s.start, ...extra });
+    if (name === 'Spooler' && action === 'stop') return rep(false, 'Access is denied (administrator needed)');
+    if (name === 'BITS' && action === 'start') { polls = 0; s.status = 'pending'; return rep(true, 'start requested', { verified: false, pending: true }); }
+    if (name === 'wuauserv' && action === 'disable') { s.status = 'stopped'; return rep(false, 'Stopped and disabled - but Windows still reports it as stopped / manual', { verified: false }); }
     if (action === 'start') s.status = 'running';
     else if (action === 'stop') s.status = 'stopped';
     else if (action === 'restart') s.status = 'running';
-    else if (action === 'enable') s.start = 'automatic';
+    else if (action === 'enable') { s.start = 'automatic'; s.status = 'running'; }
     else if (action === 'manual') s.start = 'manual';
     else if (action === 'disable') { s.start = 'disabled'; s.status = 'stopped'; }
-    return { name, ok: true, message: 'ok' };
+    return rep(true, 'ok');
   }),
 }));

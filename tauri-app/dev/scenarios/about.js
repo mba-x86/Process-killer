@@ -3,7 +3,7 @@ const btn = (T, l) => T.$$('#page button').find((b) => T.text(b).includes(l));
 const banner = (T) => T.text('.banners');
 
 export default [
-  { name: 'no update: latest-version status, release notes with tags, settings checkbox, GitHub button', async run(T) {
+  { name: 'no update: latest-version status, release notes with tags, settings checkbox, no GitHub button', async run(T) {
     await T.open('about');
     T.eq(T.title(), 'About & updates');
     await T.waitFor(() => /latest version \(1\.0\.3\)/.test(st(T)), { msg: 'up-to-date status', timeout: 6000 });
@@ -15,8 +15,9 @@ export default [
     const m = T.mark();
     await T.click('#page input.chk');
     await T.waitFor(() => T.calls('set_settings', m).length === 1 && T.calls('set_settings', m)[0].args.auto_check === false, { msg: 'set_settings(auto_check:false)' });
-    await T.click(btn(T, 'Project on GitHub'));
-    await T.waitFor(() => T.calls('open_url', m).length === 1); T.has(T.calls('open_url', m)[0].args.url, 'github.com');
+    T.assert(!btn(T, 'GitHub') && !T.$$('#page button, #page a').some((e) => /github/i.test(e.textContent + (e.href || ''))), 'no GitHub button or link on the page');
+    T.eq(T.calls('open_url', m).length, 0, 'nothing opens a web page');
+    T.has(T.text('#page h2'), 'Task Reaper'); T.assert(T.$('#page svg path[d^="M17.8 7.3"]'), 'about page shows the scythe logo');
   } },
 
   { name: 'update available: status, notes, banner; Update now: cancel no-op, confirm -> progress -> Installing', async run(T) {

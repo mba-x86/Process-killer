@@ -44,9 +44,10 @@ export function icon(name, size = 16, attrs = {}) {
   return svg;
 }
 
-/** Brand mark from the design (dashed ring + X). */
+/** Task Reaper mark: dashed ring + scythe. This is the ONE source of the logo: tools/make_icons.py reads the markup below
+ *  (the line starting `svg.innerHTML =`) to render icon.ico, the PNG icons and the installer images. */
 export function logo(size = 30) {
   const svg = h('svg', { width: size, height: size, viewBox: '0 0 28 28', fill: 'none', 'aria-hidden': 'true' });
-  svg.innerHTML = '<circle cx="14" cy="14" r="11" stroke="#FF6B3D" stroke-width="2.2" stroke-dasharray="14 3.3"/><path d="M9.5 9.5l9 9M18.5 9.5l-9 9" stroke="#E8EBEF" stroke-width="2.6" stroke-linecap="round"/>';
+  svg.innerHTML = '<circle cx="14" cy="14" r="11" stroke="#FF6B3D" stroke-width="2.2" stroke-dasharray="14 3.3"/><path d="M8.6 21.4L17.4 8" stroke="#E8EBEF" stroke-width="2.2" stroke-linecap="round"/><path d="M17.8 7.3C12.6 3.4 6.2 6.2 5 14C8.2 10.6 12.9 9.9 17.8 7.3Z" fill="#E8EBEF" stroke="#E8EBEF" stroke-width=".6" stroke-linejoin="round"/>';
   return svg;
 }

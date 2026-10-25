@@ -726,10 +726,10 @@ pub async fn uninstall_start(
             let a = resolve_app(&app_id)?;
             let lname = a.name.to_lowercase();
             if lname.contains("webview") {
-                return err("WebView2 is used by other apps and is never removed by Process Killer.");
+                return err("WebView2 is used by other apps and is never removed by Task Reaper.");
             }
             if lname.contains("edge update") || lname.contains("edgeupdate") {
-                return err("The Microsoft Edge updater is shared with WebView2 and is never removed by Process Killer.");
+                return err("The Microsoft Edge updater is shared with WebView2 and is never removed by Task Reaper.");
             }
             if !a.installed() {
                 return err("This application is no longer installed. Refresh the list.");
