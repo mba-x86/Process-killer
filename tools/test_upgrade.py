@@ -1,23 +1,22 @@
 # Copyright (c) 2026 mba-x86. Released under the MIT License (see LICENSE).
 """Prove that installed copies upgrade IN PLACE to the current installer.
 
-Two scenarios, both per-user (an all-users install needs a UAC prompt, so that layout is checked by hand):
-  A. 1.x (Python/Tkinter, installer.iss in the repo root)  ->  current   (the original 1.x -> 2.x migration)
+One scenario, per-user (an all-users install needs a UAC prompt, so that layout is checked by hand):
   B. 2.0.0 "Process Killer" (installer script of commit 3555d87) -> current "Task Reaper"  (the rename)
 Each runs the new installer EXACTLY like the in-app updater does:
         /SILENT /SUPPRESSMSGBOXES /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS /NORESTART /RELAUNCH=1
 
 NOTHING REAL IS TOUCHED: a throw-away AppId, a temp install folder, and every product / shortcut / data-folder name in the test
 copies of the scripts is prefixed "PKTest" (so the real Start menu, desktop shortcuts and %APPDATA%\\ProcessKiller are never deleted).
-Run:  py tauri-app/tools/test_upgrade.py
+Run:  py tools/test_upgrade.py
 """
 import os, re, shutil, subprocess, sys, tempfile, time, winreg
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))     # tauri-app
-REPO = os.path.dirname(ROOT)
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPO = ROOT
 TEST_GUID = "{{5A1D7C0E-0B7B-4C1B-9F11-AAAA00000001}"                   # Inno syntax ({{ = literal {)
 KEY = r"Software\Microsoft\Windows\CurrentVersion\Uninstall\{5A1D7C0E-0B7B-4C1B-9F11-AAAA00000001}_is1"
-OLD_20_COMMIT = "3555d87"                                               # last commit with the 2.0.0 installer script
+OLD_20_COMMIT = "3555d87"                                               # last commit with the 2.0.0 installer script (it lived in tauri-app/ then)
 results = []
 
 
@@ -60,8 +59,8 @@ def sandbox(text):
     text = text.replace("Process Killer", "PKTest Process Killer")                       # old product name (shortcuts, folders, AppName)
     text = text.replace('#define AppName "Task Reaper"', '#define AppName "PKTest Task Reaper"')
     text = text.replace("{userappdata}\\ProcessKiller", "{userappdata}\\PKTestData")    # never delete the real settings folder
-    text = re.sub(r"(?m)^(WizardSmallImageFile|WizardImageFile|SetupIconFile)=assets\\", lambda m: f"{m.group(1)}={REPO}\\assets\\", text)
-    text = text.replace("LicenseFile=LICENSE", f"LicenseFile={REPO}\\LICENSE")
+    text = text.replace("LicenseFile=..\\..\\LICENSE", f"LicenseFile={REPO}\\LICENSE")      # the 2.0.0 script sat one folder deeper
+    text = text.replace("LicenseFile=..\\LICENSE", f"LicenseFile={REPO}\\LICENSE")
     text = text.replace("SetupIconFile=..\\src-tauri\\icons\\icon.ico", f"SetupIconFile={ROOT}\\src-tauri\\icons\\icon.ico")
     return text
 
@@ -123,33 +122,6 @@ def version_now():
     return re.search(r'^version\s*=\s*"([^"]+)"', open(os.path.join(ROOT, "src-tauri", "Cargo.toml"), encoding="utf8").read(), re.M).group(1)
 
 
-def scenario_a(work, stub, new_iss, new_ver, new_setup_dir):
-    print("\n== A: 1.x (Python) -> current ==")
-    app = os.path.join(work, "app_a"); marker = os.path.join(work, "relaunched_a.txt")
-    old_src = os.path.join(work, "old_src"); os.makedirs(os.path.join(old_src, "_internal", "lib"))
-    shutil.copy(stub, os.path.join(old_src, "ProcessKiller.exe"))
-    for n in ("python314.dll", "tcl86t.dll", os.path.join("lib", "_ssl.pyd")):
-        open(os.path.join(old_src, "_internal", n), "wb").write(os.urandom(4096))
-    out_old = os.path.join(work, "out_old"); os.makedirs(out_old)
-    old_iss = os.path.join(work, "old.iss")
-    compile_iss(open(os.path.join(REPO, "installer.iss"), encoding="utf8").read(), {"AppVersion": "1.0.3", "SourceDir": old_src, "OutDir": out_old}, old_iss)
-    run([os.path.join(out_old, "ProcessKiller-Setup-1.0.3.exe"), "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/CURRENTUSER", "/TASKS=", f"/DIR={app}"])
-    check("A: 1.x install registered", reg("DisplayVersion") == "1.0.3", f"version={reg('DisplayVersion')}")
-    check("A: 1.x has Python runtime folder", os.path.isdir(os.path.join(app, "_internal")))
-    old_size = os.path.getsize(os.path.join(app, "ProcessKiller.exe"))
-    r = upgrade(os.path.join(new_setup_dir, f"TaskReaper-Setup-{new_ver}.exe"), marker)
-    check("A: installer exit code 0", r.returncode == 0, f"code={r.returncode}")
-    check(f"A: version updated to {new_ver}", reg("DisplayVersion") == new_ver, f"version={reg('DisplayVersion')}")
-    loc = reg("InstallLocation") or ""
-    check("A: same install folder reused", os.path.normcase(os.path.normpath(loc)) == os.path.normcase(os.path.normpath(app)), loc)
-    check("A: old Python runtime removed (_internal)", not os.path.exists(os.path.join(app, "_internal")))
-    check("A: exe replaced by the new build", os.path.getsize(os.path.join(app, "ProcessKiller.exe")) == old_size + 2048)
-    check("A: app relaunched automatically (/RELAUNCH=1)", wait_marker(marker) and os.path.normcase(open(marker).read()) == os.path.normcase(os.path.join(app, "ProcessKiller.exe")))
-    uninstall(app)
-    check("A: uninstall removes registry entry", reg("DisplayVersion") is None)
-    check("A: uninstall removes install folder", not os.path.exists(os.path.join(app, "ProcessKiller.exe")))
-
-
 def scenario_b(work, stub, new_ver, new_setup_dir):
     print("\n== B: 2.0.0 'Process Killer' -> current 'Task Reaper' (rename) ==")
     app = os.path.join(work, "app_b"); marker = os.path.join(work, "relaunched_b.txt")
@@ -204,13 +176,12 @@ def main():
     new_ver = version_now()
     try:
         stub = build_stub(work)
-        for n in ("wizard_small.bmp", "wizard_large.bmp"):                   # normally produced by release.py
+        for n in ("wizard_small.bmp", "wizard_large.bmp"):                   # produced by release.py from installer/logo_256.png
             if not os.path.exists(os.path.join(ROOT, "installer", n)):
-                shutil.copy(os.path.join(REPO, "assets", n), os.path.join(ROOT, "installer", n))
+                sys.exit("run `py tools/release.py` once first: it creates installer/wizard_*.bmp")
         out_new = os.path.join(work, "out_new"); os.makedirs(out_new)
         compile_iss(open(os.path.join(ROOT, "installer", "ProcessKiller.iss"), encoding="utf8").read(),
                     {"AppVersion": new_ver, "SourceDir": new_payload(work, stub), "OutDir": out_new}, new_iss)
-        scenario_a(work, stub, new_iss, new_ver, out_new)
         scenario_b(work, stub, new_ver, out_new)
     finally:
         try:

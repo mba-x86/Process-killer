@@ -553,7 +553,7 @@ mod tests {
     #[test]
     #[ignore]
     fn smoke_scan_ui_folder() {
-        let root = PathBuf::from(r"E:\DEV\Process Killer\tauri-app\ui");
+        let root = PathBuf::from(r"E:\DEV\Process Killer\ui");
         let t = Instant::now();
         let r = run_scan(&[root], 1024, Arc::new(AtomicBool::new(false)), 8, &mut |_| {});
         println!("{} files, {} bytes, {} errors in {:?}", r.sh.files.load(Ordering::Relaxed), r.sh.bytes.load(Ordering::Relaxed), r.sh.errors.load(Ordering::Relaxed), t.elapsed());

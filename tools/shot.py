@@ -1,11 +1,11 @@
 # Copyright (c) 2026 mba-x86. Released under the MIT License (see LICENSE).
 """Render a UI route to a PNG with headless Chrome and report JavaScript errors.
 
-    py tauri-app/tools/shot.py dashboard                     -> tauri-app/.cache/shots/dashboard.png
-    py tauri-app/tools/shot.py applications --out a.png --size 1440x960 --query "admin=0" --wait 4000
+    py tools/shot.py dashboard                     -> .cache/shots/dashboard.png
+    py tools/shot.py applications --out a.png --size 1440x960 --query "admin=0" --wait 4000
 
 Each run starts its own throw-away web server on a free port (safe to run from several agents at once) and uses
-the mock backend in ui/mock. Compare the result with tauri-app/design-ref/png/<Page>.png (same 1440x1500 default).
+the mock backend in ui/mock. Compare the result with design-ref/png/<Page>.png (same 1440x1500 default).
 """
 import argparse, functools, http.server, os, re, shutil, socket, subprocess, sys, threading
 

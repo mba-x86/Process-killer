@@ -1,7 +1,7 @@
 # Copyright (c) 2026 mba-x86. Released under the MIT License (see LICENSE).
 """Measure launch time, memory and idle CPU of a built Process Killer exe.
 
-    py tauri-app/tools/measure.py path\\to\\ProcessKiller.exe [--runs 3] [--window-title "Process Killer"]
+    py tools/measure.py path\\to\\ProcessKiller.exe [--runs 3] [--window-title "Process Killer"]
 
 Build a prompt-free test exe first:   set PK_NO_ADMIN_MANIFEST=1 && cargo build --release   (never ship that build)
 Reports: time until the main window is visible, memory of the whole process tree (our exe + the WebView2 helper processes),

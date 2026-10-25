@@ -1,14 +1,14 @@
 # Copyright (c) 2026 mba-x86. Released under the MIT License (see LICENSE).
 """Interaction smoke tests for the Tauri UI (mock backend), run in headless Chrome. Python stdlib only.
 
-    py tauri-app/tools/smoke.py                    run every scenario file in tauri-app/dev/scenarios
-    py tauri-app/tools/smoke.py dashboard storage  run only those files
-    py tauri-app/tools/smoke.py -v                 also print notes / per-scenario details
-    py tauri-app/tools/smoke.py --list
+    py tools/smoke.py                    run every scenario file in dev/scenarios
+    py tools/smoke.py dashboard storage  run only those files
+    py tools/smoke.py -v                 also print notes / per-scenario details
+    py tools/smoke.py --list
 
-One throw-away local server serves tauri-app/ui at "/" and tauri-app/dev at "/__dev/" (same origin). For each scenario
+One throw-away local server serves ui at "/" and dev at "/__dev/" (same origin). For each scenario
 file one headless Chrome loads /__dev/smoke.html?run=<file> with a virtual-time budget; the page fills <pre id="result">
-with JSON, which is parsed here. Exit code 1 if anything fails. The harness lives in tauri-app/dev (NOT in ui/, which is
+with JSON, which is parsed here. Exit code 1 if anything fails. The harness lives in dev (NOT in ui/, which is
 embedded in the shipped app): the server injects dev/probe.js + dev/hook.js into index.html only when ?__smoke is present.
 """
 import argparse, concurrent.futures as cf, functools, html, http.server, json, mimetypes, os, posixpath, re, shutil, socket, subprocess, sys, threading, urllib.parse

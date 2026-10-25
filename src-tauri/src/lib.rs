@@ -8,7 +8,7 @@ mod shell;
 mod state;
 mod util;
 
-// domain modules (each owned by one backend agent; see docs/RUST_GUIDE.md)
+// domain modules
 mod apps;
 mod cleanup;
 mod dupes;

@@ -1,3 +1,0 @@
-- Remove apps whose uninstaller is missing (stale entries Windows cannot uninstall), with a registry backup
-- Guarded removal of Microsoft Edge (keeps WebView2, requires another browser, optional reinstall block)
-- Fixes: clearer errors from background tasks, thread-safe logging, app names with hidden characters

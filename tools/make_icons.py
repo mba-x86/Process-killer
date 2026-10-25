@@ -1,7 +1,7 @@
 # Copyright (c) 2026 mba-x86. Released under the MIT License (see LICENSE).
 """Render the Task Reaper app icon from the SAME vector mark the UI draws (ui/js/icons.js, function logo()).
 
-    py tauri-app/tools/make_icons.py
+    py tools/make_icons.py
 
 Writes src-tauri/icons/{icon.ico,icon.png,32x32.png,128x128.png,128x128@2x.png} and installer/logo_256.png.
 Each size is rendered by Chrome from the SVG (not scaled down from a big bitmap), so the 16 px icon is as crisp as it can be.
@@ -9,7 +9,7 @@ Each size is rendered by Chrome from the SVG (not scaled down from a big bitmap)
 import os, re, struct, subprocess, sys, tempfile
 from PIL import Image
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))          # tauri-app
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ICONS = os.path.join(ROOT, "src-tauri", "icons")
 CHROME = next((p for p in (r"C:\Program Files\Google\Chrome\Application\chrome.exe", r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
                            r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe") if os.path.exists(p)), None)

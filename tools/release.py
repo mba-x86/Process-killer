@@ -1,17 +1,17 @@
 # Copyright (c) 2026 mba-x86. Released under the MIT License (see LICENSE).
 """Build the Task Reaper (formerly Process Killer) installer + update manifest.
 
-    py tauri-app/tools/release.py                      build exe + installer + dist/latest.json
-    py tauri-app/tools/release.py --notes "Fixed X"    release notes shown in the update banner
-    py tauri-app/tools/release.py --publish            create a GitHub PRE-RELEASE (old users are NOT offered it yet)
-    py tauri-app/tools/release.py --promote            make the pre-release the LATEST release (everyone gets the update)
+    py tools/release.py                      build exe + installer + dist/latest.json
+    py tools/release.py --notes "Fixed X"    release notes shown in the update banner
+    py tools/release.py --publish            create a GitHub PRE-RELEASE (old users are NOT offered it yet)
+    py tools/release.py --promote            make the pre-release the LATEST release (everyone gets the update)
 
-Version = src-tauri/Cargo.toml == src-tauri/tauri.conf.json (must match). Output: tauri-app/dist/.
+Version = src-tauri/Cargo.toml == src-tauri/tauri.conf.json (must match). Output: dist/.
 """
 import argparse, hashlib, json, os, re, shutil, subprocess, sys, urllib.request
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))          # tauri-app
-REPO = os.path.dirname(ROOT)
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPO = ROOT
 TAURI = os.path.join(ROOT, "src-tauri")
 INST = os.path.join(ROOT, "installer")
 DIST = os.path.join(ROOT, "dist")
@@ -95,7 +95,7 @@ def main():
     sh([iscc, f"/DAppVersion={v}", f"/DSourceDir={os.path.dirname(exe)}", f"/DOutDir={DIST}", os.path.join(INST, "ProcessKiller.iss")])
     setup = os.path.join(DIST, f"TaskReaper-Setup-{v}.exe")
     data = open(setup, "rb").read()
-    notes = a.notes or (open(os.path.join(REPO, "release_notes.md"), encoding="utf8").read().strip() if os.path.exists(os.path.join(REPO, "release_notes.md")) else "")
+    notes = a.notes
     manifest = {"version": v, "url": f"https://github.com/{SLUG}/releases/download/v{v}/{os.path.basename(setup)}",
                 "sha256": hashlib.sha256(data).hexdigest(), "size": len(data), "notes": notes}
     shipped_key = re.search(r'UPDATE_PUBLIC_KEY:\s*&str\s*=\s*"([^"]*)"', open(os.path.join(TAURI, "src", "updates.rs"), encoding="utf8").read()).group(1)
@@ -116,7 +116,7 @@ def main():
         print(f"tagging v{v} on branch '{branch}' (it must already be pushed: git push origin {branch})")
         sh([gh, "release", "create", f"v{v}", *files, "--repo", SLUG, "--target", branch, "--title", f"Task Reaper {v}",
             "--notes", notes or f"Version {v}", "--prerelease"])
-        print(f"Published v{v} as a PRE-RELEASE (installed apps do not see it). Test it, then: py tauri-app/tools/release.py --promote")
+        print(f"Published v{v} as a PRE-RELEASE (installed apps do not see it). Test it, then: py tools/release.py --promote")
 
 
 if __name__ == "__main__":
