@@ -3,7 +3,7 @@
 // (WebView2 remote-debugging port + Node's built-in WebSocket), and compares the JSON SHAPE of each response with the
 // shape the UI's mock returns (the mock = what the UI was written against).
 //
-//   node tools/e2e.mjs path\to\ProcessKiller.exe [--keep]
+//   node tools/e2e.mjs path\to\TaskReaper.exe [--keep]
 //
 // Build a prompt-free exe first:  set PK_NO_ADMIN_MANIFEST=1 && cargo build --release   (never ship that build)
 import { spawn, execSync } from 'node:child_process';

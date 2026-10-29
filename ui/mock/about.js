@@ -12,7 +12,7 @@ const NOTES_CURRENT = [
 ].join('\n');
 
 mock('get_about', () => ({ version: '1.0.3', copyright: '© 2026 mba-x86', license: 'MIT License',
-  repo_url: 'https://github.com/mba-x86/process-killer', release_notes_current: NOTES_CURRENT }));
+  repo_url: 'https://github.com/mba-x86/task-reaper', release_notes_current: NOTES_CURRENT }));
 
 mock('check_update', async () => {
   await wait(600);

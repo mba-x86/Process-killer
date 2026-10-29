@@ -1,12 +1,12 @@
 # Task Reaper
 
-A Windows utility (formerly **Process Killer**) to find and stop processes and services, uninstall apps and clean up what they leave
+A Windows utility to find and stop processes and services, uninstall apps and clean up what they leave
 behind, analyse storage (largest files, folders and duplicate files), free RAM, and see live hardware stats.
 
 Built with Tauri 2: a Rust backend and a plain HTML/CSS/JS interface, no bundler. The installer is about 5 MB.
 
 ## Install
-Download the latest `TaskReaper-Setup-x.y.z.exe` from the [Releases](https://github.com/mba-x86/Process-killer/releases) page.
+Download the latest `TaskReaper-Setup-x.y.z.exe` from the [Releases](https://github.com/mba-x86/task-reaper/releases) page.
 The app updates itself from there (Settings: *About & updates*).
 
 ## Develop

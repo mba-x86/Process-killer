@@ -1,5 +1,5 @@
 # Copyright (c) 2026 mba-x86. Released under the MIT License (see LICENSE).
-"""Build the Task Reaper (formerly Process Killer) installer + update manifest.
+"""Build the Task Reaper installer + update manifest.
 
     py tools/release.py                      build exe + installer + dist/latest.json
     py tools/release.py --notes "Fixed X"    release notes shown in the update banner
@@ -15,9 +15,9 @@ REPO = ROOT
 TAURI = os.path.join(ROOT, "src-tauri")
 INST = os.path.join(ROOT, "installer")
 DIST = os.path.join(ROOT, "dist")
-SLUG = "mba-x86/Process-killer"
+SLUG = "mba-x86/task-reaper"
 WEBVIEW2_BOOTSTRAPPER = "https://go.microsoft.com/fwlink/p/?LinkId=2124703"
-DEFAULT_KEY = os.path.join(os.path.expanduser("~"), ".processkiller", "update.key")   # secret key lives OUTSIDE the repo
+DEFAULT_KEY = os.path.join(os.path.expanduser("~"), ".taskreaper", "update.key")   # secret key lives OUTSIDE the repo
 
 
 def sh(cmd, **kw):
@@ -75,7 +75,7 @@ def main():
     ap.add_argument("--promote", action="store_true")
     ap.add_argument("--skip-build", action="store_true")
     ap.add_argument("--sign", default=os.environ.get("PK_MINISIGN_KEY") or (DEFAULT_KEY if os.path.exists(DEFAULT_KEY) else ""),
-                    help="minisign secret key (default: %%USERPROFILE%%\\.processkiller\\update.key); needs `rsign` (cargo install rsign2)")
+                    help="minisign secret key (default: %%USERPROFILE%%\\.taskreaper\\update.key); needs `rsign` (cargo install rsign2)")
     a = ap.parse_args()
     v = version()
     gh = find(r"C:\Program Files\GitHub CLI\gh.exe", "gh")
@@ -86,13 +86,13 @@ def main():
     os.makedirs(DIST, exist_ok=True)
     if not a.skip_build:
         sh(["cargo", "build", "--release"], cwd=TAURI)
-    exe = os.path.join(TAURI, "target", "release", "ProcessKiller.exe")
+    exe = os.path.join(TAURI, "target", "release", "TaskReaper.exe")
     if not os.path.exists(exe):
         sys.exit(f"missing {exe}")
     make_wizard_images()
     webview2_bootstrapper()
     iscc = find(os.path.expandvars(r"%LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe"), r"C:\Program Files (x86)\Inno Setup 6\ISCC.exe", "iscc")
-    sh([iscc, f"/DAppVersion={v}", f"/DSourceDir={os.path.dirname(exe)}", f"/DOutDir={DIST}", os.path.join(INST, "ProcessKiller.iss")])
+    sh([iscc, f"/DAppVersion={v}", f"/DSourceDir={os.path.dirname(exe)}", f"/DOutDir={DIST}", os.path.join(INST, "TaskReaper.iss")])
     setup = os.path.join(DIST, f"TaskReaper-Setup-{v}.exe")
     data = open(setup, "rb").read()
     notes = a.notes

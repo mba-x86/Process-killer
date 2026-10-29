@@ -63,9 +63,9 @@ pub fn win_dir() -> String {
     std::env::var("SystemRoot").unwrap_or_else(|_| "C:\\Windows".into()).to_lowercase().trim_end_matches('\\').to_string()
 }
 
-/// Per-user data folder shared with the 1.x app: `%APPDATA%\ProcessKiller` (settings.json, activity.log, backups\, specs cache).
+/// Per-user data folder shared with the 1.x app: `%APPDATA%\TaskReaper` (settings.json, activity.log, backups\, specs cache).
 pub fn data_dir() -> std::path::PathBuf {
-    let p = std::path::PathBuf::from(std::env::var("APPDATA").unwrap_or_else(|_| ".".into())).join("ProcessKiller");
+    let p = std::path::PathBuf::from(std::env::var("APPDATA").unwrap_or_else(|_| ".".into())).join("TaskReaper");
     let _ = std::fs::create_dir_all(&p);
     p
 }
@@ -76,7 +76,7 @@ pub fn acquire_single_instance() -> bool {
     use windows::core::PCWSTR;
     use windows::Win32::Foundation::{CloseHandle, GetLastError, ERROR_ALREADY_EXISTS};
     use windows::Win32::System::Threading::CreateMutexW;
-    let name = wide("ProcessKillerAppMutex");
+    let name = wide("TaskReaperAppMutex");
     for _ in 0..12 {
         unsafe {
             if let Ok(h) = CreateMutexW(None, false, PCWSTR(name.as_ptr())) {

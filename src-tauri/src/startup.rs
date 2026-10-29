@@ -456,20 +456,20 @@ mod tests {
 
     #[test]
     fn hkcu_run_roundtrip() {
-        let path = r"Software\ProcessKillerTest\StartupRoundtrip\Run";
+        let path = r"Software\TaskReaperTest\StartupRoundtrip\Run";
         let cu = RegKey::predef(HKEY_CURRENT_USER);
         let (k, _) = cu.create_subkey(path).unwrap();
-        k.set_value("PkTestA", &"\"C:\\x\\a.exe\" --go").unwrap();
-        k.set_value("PkTestB", &1u32).unwrap(); // DWORD ignored
+        k.set_value("TrTestA", &"\"C:\\x\\a.exe\" --go").unwrap();
+        k.set_value("TrTestB", &1u32).unwrap(); // DWORD ignored
         let list = list_run_at(Hive::Cu, path, "HKCU Run");
         assert_eq!(list.len(), 1);
-        assert_eq!(list[0].name, "PkTestA");
+        assert_eq!(list[0].name, "TrTestA");
         assert_eq!(list[0].command, "\"C:\\x\\a.exe\" --go");
-        assert_eq!(remove_run_value(Hive::Cu, path, "PkTestA"), Ok("startup entry removed"));
-        assert_eq!(remove_run_value(Hive::Cu, path, "PkTestA"), Ok("already gone"));
+        assert_eq!(remove_run_value(Hive::Cu, path, "TrTestA"), Ok("startup entry removed"));
+        assert_eq!(remove_run_value(Hive::Cu, path, "TrTestA"), Ok("already gone"));
         assert!(list_run_at(Hive::Cu, path, "x").is_empty());
-        assert_eq!(remove_run_value(Hive::Cu, r"Software\ProcessKillerTest\NoSuch\Run", "x"), Ok("already gone"));
-        let _ = cu.delete_subkey_all(r"Software\ProcessKillerTest");
+        assert_eq!(remove_run_value(Hive::Cu, r"Software\TaskReaperTest\NoSuch\Run", "x"), Ok("already gone"));
+        let _ = cu.delete_subkey_all(r"Software\TaskReaperTest");
     }
 
     /// Read-only: lists real startup entries and tasks.

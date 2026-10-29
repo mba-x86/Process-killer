@@ -19,15 +19,15 @@ use crate::state::AppState;
 use crate::util::{self, err, CmdResult};
 
 /// Minisign public key (the base64 line of the `.pub` file, e.g. `RWQ...`) used to verify installers.
-/// Generate a key pair once with rsign2 (`cargo install rsign2`, then `rsign generate -p pk.pub -s pk.key`),
-/// keep `pk.key` SECRET (release machine only), paste the public key here and sign each installer
-/// (`rsign sign -s pk.key ProcessKiller-Setup-X.exe`), putting the contents of the `.minisig` file in the
+/// Generate a key pair once with rsign2 (`cargo install rsign2`, then `rsign generate -p tr.pub -s tr.key`),
+/// keep `tr.key` SECRET (release machine only), paste the public key here and sign each installer
+/// (`rsign sign -s tr.key TaskReaper-Setup-X.exe`), putting the contents of the `.minisig` file in the
 /// manifest as `"signature"`. To rotate: ship a release signed with the OLD key containing the NEW key.
 /// While this is empty the signature check is skipped (SHA-256 is still enforced).
 pub const UPDATE_PUBLIC_KEY: &str = "RWQVwkqO8SCX+h8YqjoGBDjdbkluvgPK3oHHwdxAIVAu1I0lxYXRg2UP";
 
-const DEFAULT_SOURCE: &str = "github:mba-x86/Process-killer";
-const REPO_URL: &str = "https://github.com/mba-x86/Process-killer";
+const DEFAULT_SOURCE: &str = "github:mba-x86/task-reaper";
+const REPO_URL: &str = "https://github.com/mba-x86/task-reaper";
 const CURRENT_VERSION: &str = env!("CARGO_PKG_VERSION");
 const INSTALLER_ARGS: [&str; 6] = ["/SILENT", "/SUPPRESSMSGBOXES", "/CLOSEAPPLICATIONS", "/RESTARTAPPLICATIONS", "/NORESTART", "/RELAUNCH=1"];
 const OFFLINE_MSG: &str = "Could not reach the update server. Check your internet connection.";
@@ -377,7 +377,7 @@ pub fn parse_manifest(text: &str) -> Result<Manifest, String> {
 // ------------------------------------------------------------------ HTTP
 
 fn user_agent() -> String {
-    format!("ProcessKiller/{CURRENT_VERSION}")
+    format!("TaskReaper/{CURRENT_VERSION}")
 }
 
 /// GET with the URL policy applied to the first request and to every redirect hop.
@@ -468,7 +468,7 @@ pub fn verify_signature(data: &[u8], sig: &str, public_key: &str) -> Result<(), 
 /// Largest installer we will download when the manifest does not announce a size.
 const MAX_INSTALLER_BYTES: u64 = 512 * 1024 * 1024;
 /// The installer is always stored under this fixed name: the URL's file name is attacker-influenced text.
-const INSTALLER_FILE: &str = "ProcessKiller-Setup.exe";
+const INSTALLER_FILE: &str = "TaskReaper-Setup.exe";
 
 /// Download `m` into `dir`, verify checksum (+ signature when `public_key` is non-empty and the manifest has one).
 /// The file is deleted on any failure. `progress(done, total)` is throttled to ~20/s.
@@ -715,12 +715,12 @@ mod tests {
 
     #[test]
     fn repo_url_only() {
-        assert!(is_repo_url("https://github.com/mba-x86/Process-killer"));
-        assert!(is_repo_url("https://github.com/mba-x86/Process-killer/releases"));
-        assert!(is_repo_url("https://github.com/mba-x86/process-killer"));
-        assert!(!is_repo_url("https://github.com/mba-x86/Process-killer-evil"));
-        assert!(!is_repo_url("https://github.com/mba-x86/Process-killer.evil.com"));
-        assert!(!is_repo_url("https://evil.com/?https://github.com/mba-x86/Process-killer"));
+        assert!(is_repo_url("https://github.com/mba-x86/task-reaper"));
+        assert!(is_repo_url("https://github.com/mba-x86/task-reaper/releases"));
+        assert!(is_repo_url("https://github.com/mba-x86/Task-Reaper"));
+        assert!(!is_repo_url("https://github.com/mba-x86/task-reaper-evil"));
+        assert!(!is_repo_url("https://github.com/mba-x86/task-reaper.evil.com"));
+        assert!(!is_repo_url("https://evil.com/?https://github.com/mba-x86/task-reaper"));
         assert!(!is_repo_url("file:///c:/windows/system32/calc.exe"));
         assert!(!is_repo_url(""));
     }
@@ -728,7 +728,7 @@ mod tests {
     #[test]
     fn manifest_source() {
         let mut s = Map::new();
-        let default = "https://github.com/mba-x86/Process-killer/releases/latest/download/latest.json";
+        let default = "https://github.com/mba-x86/task-reaper/releases/latest/download/latest.json";
         assert_eq!(manifest_url_from(&s, true), default);
         s.insert("update_source".into(), json!("github:foo/bar/"));
         assert_eq!(manifest_url_from(&s, true), "https://github.com/foo/bar/releases/latest/download/latest.json");

@@ -1,14 +1,6 @@
-; Task Reaper (formerly Process Killer) installer - built by tools/release.py:  ISCC /DAppVersion=2.1.0 /DSourceDir=... ProcessKiller.iss
+; Task Reaper installer - built by tools/release.py:  ISCC /DAppVersion=x.y.z /DSourceDir=... TaskReaper.iss
 ;
-; MIGRATION FROM 1.x (Python/Tkinter):  1.x installs are upgraded IN PLACE because this script keeps
-;   - the same AppId (below)            -> Windows/Inno treat it as the same product
-;   - the same exe name ProcessKiller.exe and the /RELAUNCH=1 relaunch entry used by the 1.x self-updater
-;   - [InstallDelete] below              -> removes the old Python runtime ({app}\_internal, ~40 MB, ~960 files)
-; Never change AppId.
-;
-; RENAME (Process Killer -> Task Reaper, 2.1.0): the exe file name stays ProcessKiller.exe on purpose, so taskbar pins and the
-; shortcuts of existing installs keep working through the update. Only the product name changes: the installer removes the old
-; "Process Killer" shortcuts / Start menu folder and creates new ones. %APPDATA%\ProcessKiller (settings) is kept.
+; Never change AppId: every update installs in place over the same product.
 #ifndef AppVersion
   #define AppVersion "2.0.0"
 #endif
@@ -23,7 +15,7 @@
   #define AppIdGuid "{{8F2C6E1B-5B1E-4E0C-9C55-3D7A6B1E9A42}"
 #endif
 #define AppName "Task Reaper"
-#define AppExe "ProcessKiller.exe"
+#define AppExe "TaskReaper.exe"
 #define WebView2Guid "{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"
 
 [Setup]
@@ -33,7 +25,7 @@ AppVersion={#AppVersion}
 AppVerName={#AppName} {#AppVersion}
 AppPublisher=mba-x86
 AppCopyright=Copyright (c) 2026 mba-x86
-AppPublisherURL=https://github.com/mba-x86/Process-killer
+AppPublisherURL=https://github.com/mba-x86/task-reaper
 LicenseFile=..\LICENSE
 DefaultDirName={autopf}\{#AppName}
 DefaultGroupName={#AppName}
@@ -55,8 +47,6 @@ ArchitecturesInstallIn64BitMode=x64compatible
 CloseApplications=yes
 RestartApplications=no
 UsePreviousAppDir=yes
-; new shortcuts go to "Task Reaper", not back into the old "Process Killer" Start menu folder
-UsePreviousGroup=no
 UsePreviousTasks=yes
 
 [Languages]
@@ -64,16 +54,6 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription: "Shortcuts:"
-
-[InstallDelete]
-; leftovers of the 1.x Python build (PyInstaller one-dir bundle)
-Type: filesandordirs; Name: "{app}\_internal"
-Type: files; Name: "{app}\unins000.msg"
-; shortcuts and Start menu folder under the pre-2.1 name (per-user and all-users locations)
-Type: files; Name: "{autodesktop}\Process Killer.lnk"
-Type: files; Name: "{userdesktop}\Process Killer.lnk"
-Type: filesandordirs; Name: "{autoprograms}\Process Killer"
-Type: filesandordirs; Name: "{userprograms}\Process Killer"
 
 [Files]
 Source: "{#SourceDir}\{#AppExe}"; DestDir: "{app}"; Flags: ignoreversion
@@ -93,11 +73,11 @@ Filename: "{tmp}\MicrosoftEdgeWebview2Setup.exe"; Parameters: "/silent /install"
 #endif
 ; Normal install: offer to launch at the end.
 Filename: "{app}\{#AppExe}"; Description: "Launch {#AppName}"; Flags: nowait postinstall skipifsilent shellexec
-; Silent self-update (1.x and 2.x updaters pass /RELAUNCH=1): the new version opens by itself.
+; Silent self-update (the updater passes /RELAUNCH=1): the new version opens by itself.
 Filename: "{app}\{#AppExe}"; Flags: nowait shellexec; Check: ShouldRelaunch
 
 [UninstallDelete]
-Type: filesandordirs; Name: "{userappdata}\ProcessKiller"
+Type: filesandordirs; Name: "{userappdata}\TaskReaper"
 
 [Code]
 function ShouldRelaunch: Boolean;

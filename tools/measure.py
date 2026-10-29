@@ -1,7 +1,7 @@
 # Copyright (c) 2026 mba-x86. Released under the MIT License (see LICENSE).
-"""Measure launch time, memory and idle CPU of a built Process Killer exe.
+"""Measure launch time, memory and idle CPU of a built Task Reaper exe.
 
-    py tools/measure.py path\\to\\ProcessKiller.exe [--runs 3] [--window-title "Process Killer"]
+    py tools/measure.py path\\to\\TaskReaper.exe [--runs 3] [--window-title "Task Reaper"]
 
 Build a prompt-free test exe first:   set PK_NO_ADMIN_MANIFEST=1 && cargo build --release   (never ship that build)
 Reports: time until the main window is visible, memory of the whole process tree (our exe + the WebView2 helper processes),
@@ -66,7 +66,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("exe")
     ap.add_argument("--runs", type=int, default=3)
-    ap.add_argument("--window-title", default="Process Killer")
+    ap.add_argument("--window-title", default="Task Reaper")
     ap.add_argument("--settle", type=float, default=4.0)
     a = ap.parse_args()
     if not os.path.exists(a.exe):

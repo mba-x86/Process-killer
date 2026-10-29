@@ -27,7 +27,7 @@ const APPS = [['brave.exe', 21, 3.4 * GB, 1], ['MemCompression', 1, 1.2 * GB, 0]
   ['Discord.exe', 6, 0.5 * GB, 0], ['MsMpEng.exe', 1, 0.33 * GB, 0]];
 mock('get_top_apps', ({ by = 'memory', limit = 6 }) => APPS.map(([name, count, m, c]) => ({ name, count, mem: m, cpu: c }))
   .sort((a, b) => (by === 'cpu' ? b.cpu - a.cpu : b.mem - a.mem)).slice(0, limit));
-const PROCS = [['brave.exe', 11952, 0.4], ['MsMpEng.exe', 5588, 0.3], ['explorer.exe', 10908, 0.3], ['ProcessKiller.exe', 6300, 0.3], ['brave.exe', 1336, 0.2], ['Code.exe', 12880, 0.2]];
+const PROCS = [['brave.exe', 11952, 0.4], ['MsMpEng.exe', 5588, 0.3], ['explorer.exe', 10908, 0.3], ['TaskReaper.exe', 6300, 0.3], ['brave.exe', 1336, 0.2], ['Code.exe', 12880, 0.2]];
 mock('get_top_processes', ({ by = 'memory', limit = 6 }) => PROCS.map(([name, pid, c], i) => ({ pid, name, cpu: c * (0.8 + Math.random() * 0.4), mem: (900 - i * 120) * 1048576 }))
   .sort((a, b) => (by === 'cpu' ? b.cpu - a.cpu : b.mem - a.mem)).slice(0, limit));
 mock('copy_text', () => null);

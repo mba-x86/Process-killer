@@ -158,7 +158,7 @@ fn drive_letters() {
 struct TestKey(String);
 impl TestKey {
     fn new(tag: &str) -> Self {
-        TestKey(format!(r"Software\PKTest{}{}", tag, std::process::id()))
+        TestKey(format!(r"Software\TRTest{}{}", tag, std::process::id()))
     }
     fn root(&self) -> RegKey {
         RegKey::predef(HKEY_CURRENT_USER)
@@ -184,20 +184,20 @@ fn add_entry(root: &str, sub: &str, vals: &[(&str, &str)], dwords: &[(&str, u32)
 fn scan_filters_and_cleaning() {
     let tk = TestKey::new("Scan");
     let root = format!("{}\\Uninstall", tk.0);
-    add_entry(&root, "good", &[("DisplayName", "\u{200e}PKTest Good App\u{200f}"), ("UninstallString", r#""C:\Program Files\PKGood\unins000.exe" /S"#), ("QuietUninstallString", "q"), ("DisplayVersion", "1.2.3"), ("InstallDate", "20261016"), ("Publisher", "Pub")], &[("EstimatedSize", 2048)]);
-    add_entry(&root, "zdup", &[("DisplayName", "PKTest Good App"), ("UninstallString", "x"), ("DisplayVersion", "1.2.3")], &[]);
-    add_entry(&root, "sys", &[("DisplayName", "PKTest System"), ("UninstallString", "x")], &[("SystemComponent", 1)]);
+    add_entry(&root, "good", &[("DisplayName", "\u{200e}TRTest Good App\u{200f}"), ("UninstallString", r#""C:\Program Files\TRGood\unins000.exe" /S"#), ("QuietUninstallString", "q"), ("DisplayVersion", "1.2.3"), ("InstallDate", "20261016"), ("Publisher", "Pub")], &[("EstimatedSize", 2048)]);
+    add_entry(&root, "zdup", &[("DisplayName", "TRTest Good App"), ("UninstallString", "x"), ("DisplayVersion", "1.2.3")], &[]);
+    add_entry(&root, "sys", &[("DisplayName", "TRTest System"), ("UninstallString", "x")], &[("SystemComponent", 1)]);
     add_entry(&root, "kb", &[("DisplayName", "KB5001234 thing"), ("UninstallString", "x")], &[]);
-    add_entry(&root, "upd", &[("DisplayName", "Update for PKTest"), ("UninstallString", "x")], &[]);
-    add_entry(&root, "child", &[("DisplayName", "PKTest Child"), ("UninstallString", "x"), ("ParentKeyName", "p")], &[]);
-    add_entry(&root, "nouninst", &[("DisplayName", "PKTest NoCmd")], &[]);
-    add_entry(&root, "noremove", &[("DisplayName", "PKTest NoRemove"), ("UninstallString", "x")], &[("NoRemove", 1)]);
+    add_entry(&root, "upd", &[("DisplayName", "Update for TRTest"), ("UninstallString", "x")], &[]);
+    add_entry(&root, "child", &[("DisplayName", "TRTest Child"), ("UninstallString", "x"), ("ParentKeyName", "p")], &[]);
+    add_entry(&root, "nouninst", &[("DisplayName", "TRTest NoCmd")], &[]);
+    add_entry(&root, "noremove", &[("DisplayName", "TRTest NoRemove"), ("UninstallString", "x")], &[("NoRemove", 1)]);
     add_entry(&root, "edge", &[("DisplayName", "\u{200e}Microsoft Edge"), ("UninstallString", r#""C:\x\setup.exe" --uninstall --msedge"#)], &[("NoRemove", 1)]);
     add_entry(&root, "wv2", &[("DisplayName", "Microsoft Edge WebView2 Runtime"), ("UninstallString", r#""C:\x\setup.exe" --uninstall --msedgewebview"#)], &[("SystemComponent", 1), ("NoRemove", 1)]);
     let apps = scan_roots(&[(Hive::Hkcu, root.as_str())]);
     let names: Vec<&str> = apps.iter().map(|a| a.name.as_str()).collect();
-    assert_eq!(names, vec!["Microsoft Edge", "PKTest Good App"], "got {names:?}");
-    let good = apps.iter().find(|a| a.name == "PKTest Good App").unwrap();
+    assert_eq!(names, vec!["Microsoft Edge", "TRTest Good App"], "got {names:?}");
+    let good = apps.iter().find(|a| a.name == "TRTest Good App").unwrap();
     assert_eq!(good.date, "2026-10-16");
     assert_eq!(good.size_kb, 2048);
     assert_eq!(good.version, "1.2.3");
@@ -205,7 +205,7 @@ fn scan_filters_and_cleaning() {
     assert_eq!(j["size"], 2048 * 1024);
     assert_eq!(j["can_silent"], true);
     assert_eq!(j["is_edge"], false);
-    assert_eq!(j["location"], r"C:\Program Files\PKGood");
+    assert_eq!(j["location"], r"C:\Program Files\TRGood");
     assert_eq!(j["drive"], r"C:\");
     assert!(good.id.starts_with("app"));
     assert_eq!(good.id, make_id(Hive::Hkcu, &good.regpath));
@@ -221,21 +221,21 @@ fn broken_entry_removal_with_backup() {
     let _ = std::fs::remove_dir_all(&tmp);
     std::fs::create_dir_all(&tmp).unwrap();
     let missing = tmp.join("gone").join("unins000.exe");
-    add_entry(&root, "broken", &[("DisplayName", "PKTest Men of War"), ("UninstallString", &format!("\"{}\" /S", missing.display())), ("InstallLocation", &tmp.to_string_lossy())], &[]);
-    add_entry(&root, "other", &[("DisplayName", "PKTest Other"), ("UninstallString", "x")], &[]);
+    add_entry(&root, "broken", &[("DisplayName", "TRTest Men of War"), ("UninstallString", &format!("\"{}\" /S", missing.display())), ("InstallLocation", &tmp.to_string_lossy())], &[]);
+    add_entry(&root, "other", &[("DisplayName", "TRTest Other"), ("UninstallString", "x")], &[]);
     let apps = scan_roots(&[(Hive::Hkcu, root.as_str())]);
-    let a = apps.iter().find(|a| a.name == "PKTest Men of War").unwrap().clone();
+    let a = apps.iter().find(|a| a.name == "TRTest Men of War").unwrap().clone();
     assert!(a.uninstaller_missing());
     assert!(a.installed());
     let backups = tmp.join("backups");
     let backup = remove_uninstall_entry_in(&a, &backups, "20260101-000000").expect("removal");
     assert!(std::path::Path::new(&backup).exists(), "backup file missing");
     assert!(std::fs::metadata(&backup).unwrap().len() > 0);
-    assert!(backup.ends_with("PKTest_Men_of_War-20260101-000000.reg"));
+    assert!(backup.ends_with("TRTest_Men_of_War-20260101-000000.reg"));
     assert!(!a.installed(), "key should be gone");
     let left = scan_roots(&[(Hive::Hkcu, root.as_str())]);
     assert_eq!(left.len(), 1, "only the other entry remains");
-    assert_eq!(left[0].name, "PKTest Other");
+    assert_eq!(left[0].name, "TRTest Other");
     // the sibling is untouched; a second removal is harmless
     assert!(remove_uninstall_entry_in(&a, &backups, "20260101-000001").is_ok() || true);
     let _ = std::fs::remove_dir_all(&tmp);
@@ -264,7 +264,7 @@ fn edge_policy_value() {
 
 #[test]
 fn startup_entry_remove() {
-    let e = Startup { name: "PKTestRunValue".into(), cmd: "x".into(), hklm: false, wow: false };
+    let e = Startup { name: "TRTestRunValue".into(), cmd: "x".into(), hklm: false, wow: false };
     let k = RegKey::predef(HKEY_CURRENT_USER).open_subkey_with_flags(e.key_path(), KEY_SET_VALUE | KEY_READ).unwrap();
     k.set_value(&e.name, &"C:\\x\\y.exe").unwrap();
     assert!(list_startup().iter().any(|s| s.name == e.name));

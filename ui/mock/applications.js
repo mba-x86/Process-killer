@@ -122,7 +122,7 @@ mock('uninstall_start', ({ app_id, stop_ids = [], silent, block_edge_reinstall }
     }
     if (a.uninstaller_missing) {
       await say('info', 'Removing the dead entry from Installed apps\u2026');
-      await say('ok', 'Backup saved to %APPDATA%\\ProcessKiller\\backups\\Men-of-War-Assault-Squad-2.reg', 700);
+      await say('ok', 'Backup saved to %APPDATA%\\TaskReaper\\backups\\Men-of-War-Assault-Squad-2.reg', 700);
       await say('ok', 'Removed the dead entry.', 400);
       apps = apps.filter((x) => x.id !== a.id);
       emit('uninstall:done', { job, ok: true, message: 'Removed the dead entry.', needs_restart: false }); return;

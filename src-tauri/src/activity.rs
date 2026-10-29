@@ -1,6 +1,6 @@
 // Copyright (c) 2026 mba-x86. Released under the MIT License (see LICENSE).
 //! Shared activity log (the UI's Activity page). Every module calls `activity::log(&app, "ok"|"fail"|"info", "text")`
-//! for notable actions. Entries go to `%APPDATA%\ProcessKiller\activity.log` (same line format as the 1.x app:
+//! for notable actions. Entries go to `%APPDATA%\TaskReaper\activity.log` (same line format as the 1.x app:
 //! `YYYY-MM-DD HH:MM:SS [level] message`) and are pushed to the UI as the `activity:entry` event.
 use std::io::Write;
 

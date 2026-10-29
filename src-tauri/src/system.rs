@@ -1420,7 +1420,7 @@ mod tests {
     #[test]
     #[ignore]
     fn smoke_clip_unicode() {
-        clip("Process Killer \u{2713} \u{00e9}\u{4e2d}").unwrap();
+        clip("Task Reaper \u{2713} \u{00e9}\u{4e2d}").unwrap();
         let (_, out) = util::powershell("Get-Clipboard");
         println!("clipboard: {out}");
         assert!(out.contains('\u{2713}') && out.contains('\u{4e2d}'));

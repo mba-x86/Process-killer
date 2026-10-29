@@ -258,7 +258,7 @@ mod tests {
         assert_eq!(refuse_reason(&pr(4, 0, 0, "System", ""), 1, 2), Some("protected system process"));
         let app = pr(900, 800, 1, "notepad.exe", "C:\\Program Files\\x\\notepad.exe");
         assert_eq!(refuse_reason(&app, 1, 2), None);
-        assert!(refuse_reason(&pr(1, 3, 1, "ProcessKiller.exe", "C:\\x\\ProcessKiller.exe"), 1, 2).is_some());
+        assert!(refuse_reason(&pr(1, 3, 1, "TaskReaper.exe", "C:\\x\\TaskReaper.exe"), 1, 2).is_some());
         assert!(refuse_reason(&pr(2, 3, 1, "cmd2.exe", "C:\\x\\cmd2.exe"), 1, 2).is_some());
         // WindowsApps-style names are caught by exe under C:\Windows even when name is unusual
         assert!(refuse_reason(&pr(77, 4, 1, "foo.exe", "C:\\WINDOWS\\system32\\foo.exe"), 1, 2).is_some());

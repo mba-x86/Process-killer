@@ -1,1 +1,1 @@
-Process Killer update-signing self-test file.
+Task Reaper update-signing self-test file.
