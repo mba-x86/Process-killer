@@ -1,6 +1,6 @@
 [package]
 name = "task-reaper"
-version = "2.1.3"
+version = "2.2.0"
 description = "Task Reaper - find, stop, uninstall and clean up software on Windows"
 authors = ["mba-x86"]
 license = "MIT"
